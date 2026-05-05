@@ -1,0 +1,82 @@
+api:
+  specification: ${api.specification}
+  host: "0.0.0.0"
+  version: "1.0.0"
+  status: 
+    running: "Running"
+    
+https:
+  listener:
+    path: "/api/*"
+ 
+http:
+  host: "0.0.0.0"
+  private:
+    port: "8092"
+    
+formats:
+  timestamp: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'xxx"
+  
+  
+paths:
+  carta-sapi:
+    contributions: "/contributions"
+    query: "/query"
+    productMain: "/product-main"
+    productInternal: "/product-internal"
+  pubsys-sapi:
+    global-pub: "/product/availability/global-publication-status"
+    market-res: "/product/availability/market-restrictions"
+    ecommerce-categories: "/product/ecommerce-categories"
+    technology-platforms: "/technology-platforms"
+  product-papi:
+    productv2: "/v2/product"
+    product-changes: "/product-changes"
+  redshift-sapi:
+    sales-status: "/product/availability/sales-status"
+  core-sap-replica:
+    sales-status: "/v1/product/availability/sales-status"
+  utility-sapi:
+    email: "/v1/emails"
+  salesforce-sapi:
+    object: "/object/Product2"
+    query: "/executeQuery"
+  odh-sapi:
+    query: "/query"
+    regionalAvailability: "/regional-availability"  
+  core-sap-replica-sapi:
+    product-sizes-changes: "/v1/product-sizes/changes"
+  
+productV2-sections: "bookHierarchy,productMain,productInternal,relatedProducts,productInternal,editionVolumePart,openAccess,assets,productBlurbs,rights,vistaSubjects,productEvents,regionalAvailability,editionVolumePart,productSizes,discountTerms"
+
+excluded:
+  formats: "PT,EC,ED,EE,EH,EK,EL,EM,EN,ER,ES,ET,EV,EX,EY,EZ,AR,BT,MY,NL,TG,36,37,38,39,40,41,42,43,44,45,46,47,48,49,51,52,53,54,56,59"
+  
+include:
+  imprintCode: "1,2,3,4"
+  
+search:
+  existing:
+    batchSize: "30"
+    
+controlled:
+  product: "01220000000FaUzAAK"
+  
+cron:
+  expression: "0 0 5,15 * * ?"
+  timeZone: "UTC"
+  
+      
+product-changes:
+  queryParams:
+    createdFrom: "2024-01-01"
+    updatedFrom: ""
+    
+extract:
+    dynamicPeriod: "P1D"
+            
+v2-product-sections: "productInternal,bookHierarchy,productMain,relatedProducts,editionvolumePart,openAccess,assets,productBlurbs,rights,vistaSubjects,productEvents,regionalAvailability,educational"
+
+sf:
+  query: 
+    all-products: "select salesforce_qa.product_2.isbn_13_c from salesforce_qa.product_2 where salesforce_qa.product_2.isbn_13_c like '978%'"

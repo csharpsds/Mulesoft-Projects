@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow
+		name="health-check-flow"
+		doc:id="a2e3a1e8-fe9c-4f8d-aaa0-6f5723f814bc">
+		<ee:transform doc:name="health-check-response">
+			<ee:message>
+				<ee:set-payload
+					resource="dwls/health-check-success-response.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log API status" doc:id="9f054c1a-ae14-4af2-9241-e8de9597bb21" message="API status: #[payload]"/>
+	</sub-flow>
+</mule>

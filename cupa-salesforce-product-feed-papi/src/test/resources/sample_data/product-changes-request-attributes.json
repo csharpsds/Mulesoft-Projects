@@ -1,0 +1,7 @@
+{
+	"header": {
+		"X-TRANSACTION-ID": "test-12345",
+		"client_id" : "1a395d16aa6c4473973faa8f98b383d7",
+		"client_secret" : "ee02e41599a843928948fD67A0FFA27E"
+	}
+}

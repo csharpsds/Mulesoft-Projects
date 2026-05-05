@@ -1,0 +1,21 @@
+[
+    {
+        "isbn13": "9780521575829",
+        "productInternal": {
+            "vistaDivisionCode": "CA",
+            "vistaDivision": "Cambridge University Press",
+            "vistaProfitCentreCode": "C",
+            "vistaProfitCentre": "Europe",
+            "divisionalSubjectCode": "EQ",
+            "divisionalSubject": "ELT-Students book without answers",
+            "imprintCode": "4A",
+            "imprint": "ELT Adult and Grammar",
+            "seriesCode": null,
+            "series": null,
+            "masterDivisionCode": "10",
+            "masterDivision": "ELT Division",
+            "masterProfitCentreCode": "1002",
+            "masterProfitCentre": "Adult "
+        }
+    }
+]

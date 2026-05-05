@@ -1,0 +1,238 @@
+[
+    {
+        "isbn13": "9781009101059",
+        "regionalAvailability": [
+            {
+                "vistaRegionCode": "O",
+                "region": "LAN-Mexico",
+                "vistaAvailability": {
+                    "code": "B",
+                    "descriptionShort": null,
+                    "descriptionLong": null
+                },
+                "vistaAnswerCode": {
+                    "code": "NP",
+                    "legend": "Not yet published",
+                    "description": "Not yet published"
+                },
+                "regionalPublicationDate": "2023-01-26T00:00:00Z",
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "NYP"
+                    },
+                    {
+                        "type": "edi",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "99"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "P",
+                "region": "Brazil",
+                "vistaAvailability": {
+                    "code": "B",
+                    "descriptionShort": null,
+                    "descriptionLong": null
+                },
+                "vistaAnswerCode": {
+                    "code": "NP",
+                    "legend": "Not yet published",
+                    "description": "Not yet published"
+                },
+                "regionalPublicationDate": null,
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "NYP"
+                    },
+                    {
+                        "type": "edi",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "99"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "I",
+                "region": "Iberia",
+                "vistaAvailability": {
+                    "code": "C",
+                    "descriptionShort": "currently unavailable",
+                    "descriptionLong": "Not yet published - available from March 2023"
+                },
+                "vistaAnswerCode": {
+                    "code": "NP",
+                    "legend": "Not yet published",
+                    "description": "Not yet published"
+                },
+                "regionalPublicationDate": null,
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "NYP"
+                    },
+                    {
+                        "type": "edi",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "10"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "E",
+                "region": "Asia",
+                "vistaAvailability": {
+                    "code": "C",
+                    "descriptionShort": "currently unavailable",
+                    "descriptionLong": "Not yet published - available from March 2023"
+                },
+                "vistaAnswerCode": {
+                    "code": "NP",
+                    "legend": "Not yet published",
+                    "description": "Not yet published"
+                },
+                "regionalPublicationDate": null,
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "NYP"
+                    },
+                    {
+                        "type": "edi",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "10"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "A",
+                "region": "Australia",
+                "vistaAvailability": {
+                    "code": "C",
+                    "descriptionShort": "currently unavailable",
+                    "descriptionLong": "Not yet published - available from March 2023"
+                },
+                "vistaAnswerCode": {
+                    "code": "NP",
+                    "legend": "Not yet published",
+                    "description": "Not yet published"
+                },
+                "regionalPublicationDate": null,
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "NYP"
+                    },
+                    {
+                        "type": "edi",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "10"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "N",
+                "region": "GPG US",
+                "vistaAvailability": {
+                    "code": "C",
+                    "descriptionShort": "currently unavailable",
+                    "descriptionLong": "Not yet published - available from March 2023"
+                },
+                "vistaAnswerCode": {
+                    "code": "NP",
+                    "legend": "Not yet published",
+                    "description": "Not yet published"
+                },
+                "regionalPublicationDate": null,
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "NYP"
+                    },
+                    {
+                        "type": "edi",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "10"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "C",
+                "region": "Europe",
+                "vistaAvailability": {
+                    "code": "C",
+                    "descriptionShort": "currently unavailable",
+                    "descriptionLong": "Not yet published - available from March 2023"
+                },
+                "vistaAnswerCode": {
+                    "code": "NP",
+                    "legend": "Not yet published",
+                    "description": "Not yet published"
+                },
+                "regionalPublicationDate": null,
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "NYP"
+                    },
+                    {
+                        "type": "edi",
+                        "value": "NP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "10"
+                    }
+                ]
+            }
+        ]
+    }
+]

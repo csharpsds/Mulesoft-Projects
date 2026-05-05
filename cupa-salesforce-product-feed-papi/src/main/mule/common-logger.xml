@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="common-logger-reset-log-message" doc:id="3e732d67-8ba0-4668-b2aa-db1fa9bbd336" >
+		<set-variable value='#[""]' doc:name="Set Variable" doc:id="bb37894f-aabd-4653-8f83-59a2e005a5a6" variableName="logMsg" />
+	</sub-flow>
+	<sub-flow name="common-logging-request-details-sub-flow" doc:id="48c44cb1-c544-444a-963e-0e4e5d5b8585" >
+		<logger level="INFO" doc:name="Logger" doc:id="93a8e1bb-0d7d-4e56-a06b-127a1a9b8cf4" message="Payload*** API Name: #[app.name] *** Transaction ID: #[vars.transactionId] *** URIParams: #[attributes.uriParams] QUERYParams: #[attributes.queryParams] Headers: #[attributes.headers] Message: #[vars.logMsg]  HTTP STATUS: #[vars.httpStatus]" category="message.log" />
+		<flow-ref doc:name="Flow Reference" doc:id="52326582-b1c2-47c6-9ba0-eb5e3bd08723" name="common-logger-reset-log-message" />
+	</sub-flow>
+	<sub-flow name="common-logging-exit-sub-flow" doc:id="7155e52f-3338-4af5-b71e-d5788b7f04a8" >
+		<logger level="INFO" doc:name="Exit Logger" doc:id="9bc31d79-1721-4a62-ac9d-4eb36d94bc2c" message="EXIT *** API Name: #[app.name] *** Transaction ID: #[vars.transactionId] *** HTTP STATUS:  #[vars.httpStatus] Message: #[vars.logMsg]" category="message.log" />
+		<logger level="DEBUG" doc:name="Exit Logger Payload" doc:id="9ff8149c-c1ca-4edd-8114-e93c1dbb753b" message="EXIT Payload *** API Name: #[app.name] *** Transaction ID: #[vars.transactionId] *** Message: #[payload]" category="message.trace" />
+		<flow-ref doc:name="Flow Reference" doc:id="071d08b5-16ae-4285-8e27-12abd65f33b8" name="common-logger-reset-log-message" />
+	</sub-flow>
+	<sub-flow name="common-logging-processing-sub-flow" doc:id="ea49e3ad-b350-4ed7-b496-a9668b2a1b5d" >
+		<logger level="INFO" doc:name="Processing Logger" doc:id="da5e1541-ef84-432e-a9c7-fc52786be1c7" message="PROCESSING *** API Name: #[app.name] *** Transaction ID: #[vars.transactionId] *** Message: #[vars.logMsg]" category="message.log" />
+		<logger level="DEBUG" doc:name="Processing Logger1" doc:id="0b6453e3-f2aa-4764-8a52-7fb8742dc7e4" message="PROCESSING *** API Name: #[app.name] *** Transaction ID: #[vars.transactionId] *** Message: #[payload]" category="message.trace" />
+		<flow-ref doc:name="Flow Reference" doc:id="69eda88e-4b94-4da0-893b-29cc0223fe27" name="common-logger-reset-log-message" />
+	</sub-flow>
+	<sub-flow name="common-logging-error-sub-flow" doc:id="376313fc-3d24-41ad-8eb3-24b93582bbe4" >
+		<logger level="ERROR" doc:name="Error Logger" doc:id="74f74840-b27a-432c-b4f4-6e73e0439a3d" message="PROCESSING *** API Name: #[app.name] *** Transaction ID: #[vars.transactionId] *** Message: #[error]" category="message.log" />
+		<logger level="DEBUG" doc:name="Debug Logger" doc:id="7cf8f8ad-b3d9-467b-acc9-73554aad893f" message="PROCESSING *** API Name: #[app.name] *** Transaction ID: #[vars.transactionId] *** Message: #[payload]" category="message.trace" />
+		<flow-ref doc:name="Flow Reference" doc:id="1eb8a911-a732-4e7b-8f6e-0d964bdde742" name="common-logger-reset-log-message" />
+	</sub-flow>
+	<sub-flow name="common-logging-start-time-sub-flow" doc:id="19376110-d810-4e78-8859-e78b75d71c13" >
+		<ee:transform doc:name="Transform Message" doc:id="e97ad2bb-bf73-4461-9c4e-b308c75826c4" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="startTime" ><![CDATA[%dw 2.0
+import * from dw::util::Timer
+output application/java
+---
+currentMilliseconds() as Number]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="Error Logger" doc:id="40605a6f-a133-4b7f-8938-4e648a107d36" message="Downstream Execution StartTime in Milliseconds *** API Name: #[app.name] *** Transaction ID: #[vars.transactionId] *** Message: #[vars.startTime]" category="message.log" />
+	</sub-flow>
+	<sub-flow name="common-logging-duration-sub-flow" doc:id="1e24d234-4021-4798-afe4-53586e93b342" >
+		<ee:transform doc:name="Transform Message" doc:id="d6c0cbb3-a9eb-4f5d-9809-a06ae5607743" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="endTime" ><![CDATA[%dw 2.0
+import * from dw::util::Timer
+output application/java
+---
+currentMilliseconds() as Number]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Duration Logger" doc:id="0896e12d-3c29-4528-9779-a47b43ad586d" message="*** API Name: #[app.name] *** Transaction ID: #[vars.transactionId] ***   StartTime: #[vars.startTime]  ***  Duration of the Downstream Execution in Milliseconds: #[ vars.endTime - vars.startTime]" category="message.log" />
+		<set-variable value='#["0" as Number]' doc:name="Set Variable" doc:id="40fe05bf-05f5-444e-a566-79d619acb891" variableName="startTime" />
+		<set-variable value='#["0" as Number]' doc:name="Set Variable1" doc:id="76d35b26-872d-4158-bc5c-77a65912a82a" variableName="endTime" />
+	</sub-flow>
+</mule>

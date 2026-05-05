@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="common-logger-test-suite.xml" />
+	<munit:test name="common-logger-test-suite-common-logger-reset-log-messageTest" doc:id="dd60e0cb-cbba-403a-8b50-c2a380f05994" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to common-logger-reset-log-message" doc:id="b7a9faec-c59c-4205-83f7-6f2a0fa4fa78" name="common-logger-reset-log-message"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="ad61001e-bef0-43e3-8fc5-a33c2b11e5eb" processor="set-variable" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Set Variable" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="bb37894f-aabd-4653-8f83-59a2e005a5a6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="common-logger-test-suite-common-logging-request-details-sub-flowTest" doc:id="c8201d9c-2a51-46b7-9732-63deb093aeae" description="Test">
+		<munit:behavior >
+			<munit:set-event doc:name="Set Event" doc:id="268f2569-35f1-4a1f-83e4-d171baf61eea" >
+				<munit:variables >
+					<munit:variable key="transactionId" value="test123456" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to common-logging-request-details-sub-flow" doc:id="1c0d4f89-d24a-4e59-871f-ea5549fe606c" name="common-logging-request-details-sub-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="841d44c6-d522-4b07-a46b-259148045a80" processor="set-variable" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Set Variable" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="bb37894f-aabd-4653-8f83-59a2e005a5a6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="common-logger-test-suite-common-logging-exit-sub-flowTest" doc:id="404f0c12-5174-4fdd-a544-b7530dd6f0ae" description="Test">
+		<munit:behavior >
+			<munit:set-event doc:name="Set Event" doc:id="c710ee82-21c1-4436-a381-13c62488399e" >
+				<munit:variables >
+					<munit:variable key="transactionId" value="test123456" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to common-logging-exit-sub-flow" doc:id="3ecd5ca7-003c-484a-b321-5de82da0405b" name="common-logging-exit-sub-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="252a4f95-b1f3-4fd3-adac-ce8da1dcad37" processor="set-variable" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Set Variable" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="bb37894f-aabd-4653-8f83-59a2e005a5a6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="common-logger-test-suite-common-logging-processing-sub-flowTest" doc:id="3f1dcf39-7a0a-4c14-9a20-e25278f0deff" description="Test">
+		<munit:behavior >
+			<munit:set-event doc:name="Set Event" doc:id="211a73ad-c965-44c9-92b8-c8a0f7d41ef4" >
+				<munit:variables >
+					<munit:variable key="transactionId" value="test123456" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to common-logging-processing-sub-flow" doc:id="013e076d-7604-453c-844f-d99e95a2053d" name="common-logging-processing-sub-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="6dbb4996-f13c-47c2-af6d-e15c0d62c54e" processor="set-variable" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Set Variable" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="bb37894f-aabd-4653-8f83-59a2e005a5a6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="common-logger-test-suite-common-logging-error-sub-flowTest" doc:id="b1d20cd8-64d8-4791-aca3-2cca05a00fab" description="Test">
+		<munit:behavior >
+			<munit:set-event doc:name="Set Event" doc:id="8f44306f-ea88-4b2c-8b04-b4f5899188d3" >
+				<munit:variables >
+					<munit:variable key="transactionId" value="test123456" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to common-logging-error-sub-flow" doc:id="a7011a9d-2a14-4f18-ae00-293eaf2d9bf1" name="common-logging-error-sub-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="da78ae74-f126-499b-a12d-b8168e09df0c" processor="set-variable" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Set Variable" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="bb37894f-aabd-4653-8f83-59a2e005a5a6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="common-logger-test-suite-common-logging-start-time-sub-flowTest" doc:id="45264113-b7c9-4b4b-b3bd-2eb567962265" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to common-logging-start-time-sub-flow" doc:id="a500e45a-d171-4ed0-b163-3be22bd2828c" name="common-logging-start-time-sub-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="693f2fef-a029-40e6-a4ec-b81ec587282e" processor="logger" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Error Logger" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="40605a6f-a133-4b7f-8938-4e648a107d36" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="common-logger-test-suite-common-logging-duration-sub-flowTest" doc:id="cd96a51d-6b5e-4073-895b-3303897c886d" description="Test">
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="f34385d7-55cd-4a90-986b-f2ec64638745">
+				<munit:variables >
+					<munit:variable key="transactionId" value="test123456" />
+					<munit:variable key="startTime" value="1715584585" />
+					<munit:variable key="endtime" value="1715584590" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to common-logging-duration-sub-flow" doc:id="9ca19c93-70dd-490d-85d3-0b3585fa1734" name="common-logging-duration-sub-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="30339580-ce05-4ee0-b4c3-fd69e1538a30" processor="set-variable" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Set Variable1" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="76d35b26-872d-4158-bc5c-77a65912a82a" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

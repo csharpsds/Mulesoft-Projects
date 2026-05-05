@@ -1,0 +1,87 @@
+api:
+  id: "19446880"
+
+http:
+  request:
+    protocol: "HTTPS"
+    port: "443"
+
+credentials:
+  client_id: "![rAwhIkpWYgYMvgvLzhVfULyGUmznsAdpdYUuY6aDJy6mXX/owhZYCQ==]"
+  client_secret: "![xoqCO1icDlJWpjRMqK+J5oR34TZs1QXje6FTnuspB5lMF/hKs1fG9g==]"
+  
+salesforceSapi:
+  host: "cupa-salesforce-sapi-qa2-mvlr6z.internal-a8fxsq.gbr-e1.cloudhub.io"
+  basePath: "/api"  
+  responseTimeout: "120000"
+  reconnectAttempt: "3"
+  reconnectFrequency: "120000"
+  
+utilitySapi:
+  host: "ca-utility-sapi-dev-xtqezq.internal-a8fxsq.gbr-e1.cloudhub.io"
+  basePath: "/api"
+  endpoint: "/v1/smtp/emails"
+  responseTimeout: "60000"
+  reconnectFrequency: "30000"
+  reconnectAttempt: "3"
+  
+product-papi:
+  host: "cupa-product-papi-dev-xtqezq.internal-a8fxsq.gbr-e1.cloudhub.io"
+  base-path: "/api"
+  response-timeout: "240000"
+  recon-frequency: "60000"
+  recon-attempts: "3"
+  
+pubsys-sapi:
+  host: "cupa-pubsys-sapi-dev-xtqezq.internal-a8fxsq.gbr-e1.cloudhub.io"
+  base-path: "/api"
+  response-timeout: "300000"
+  recon-frequency: "60000"
+  recon-attempts: "3"
+  
+redshift-sapi:
+  host: "cupa-cambridge-dwh-rs-sapi-dev-xtqezq.internal-a8fxsq.gbr-e1.cloudhub.io"
+  base-path: "/api"
+  response-timeout: "60000"
+  recon-frequency: "300000"
+  recon-attempts: "3"
+  
+carta-sapi:
+  host: "cupa-carta-sapi-dev-xtqezq.internal-a8fxsq.gbr-e1.cloudhub.io"
+  base: "/api"
+  response_timeout: "240000"
+  reconnect_attempt: "3"
+  reconnect_frequency: "30000"
+  schema:
+    bookentity: "bookentity_arcturus"
+    crossproduct: "crossproduct_sirius"
+    reference: "reference_alderaan"
+    reference-custom: "reference_custom"
+    productChanges: "product_changes_procyon"
+    productCustom: "product_custom"
+  
+product-sapi:
+  host: "cupa-odh-sapi-dev-xtqezq.internal-a8fxsq.gbr-e1.cloudhub.io"
+  base: "/api"
+  response_timeout: "240000"
+  reconnect_attempt: "3"
+  reconnect_frequency: "30000"
+
+core-sap-replica-sapi:
+  host: "cupa-core-sap-replica-sapi-dev-xtqezq.internal-a8fxsq.gbr-e1.cloudhub.io"
+  base: "/api"
+  response_timeout: "240000"
+  reconnect_attempt: "3"
+  reconnect_frequency: "30000"
+  
+schema:
+  salesforce: "salesforce_qa"
+
+report:
+  emailSettings:
+    subject: "Report for Salesforce Product Feed"
+  tokenCheck:
+    emailOnSuccess: "true"
+    emailOnFail: "true"
+    sender: "mulesupport@cambridgeassessment.org.uk"
+    recipient: "4820d8fb.cambridgeorg.onmicrosoft.com@uk.teams.ms,marlon.araneta@cambridge.org"

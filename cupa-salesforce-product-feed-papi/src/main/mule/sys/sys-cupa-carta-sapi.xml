@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="sys-post-query-cupa-carta-sapi-flow" doc:id="50113209-d9ba-4ead-bdd6-58a812da260a" >
+		<logger level="INFO" doc:name="START - sys-post-query-cupa-carta-sapi-flow" doc:id="3d063bf0-da75-4f0b-90db-3b4dee44cc2b" message='#["START - sys-post-query-cupa-carta-sapi-flow"]' />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="e4356cd9-5898-45f4-b3fd-715819819192" millisBetweenRetries="5000">
+			<try doc:name="Try" doc:id="82bce117-839e-4897-8517-c26b7a39ad6c" >
+				<http:request method="POST" doc:name="POST /query" doc:id="b9e489da-b7f1-43f1-a25c-d778f5765604" config-ref="carta-sapi_HTTP_Request_configuration" path="${paths.carta-sapi.query}" >
+				</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="baf55d0b-46c1-430e-8157-50fdea1d9d27" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS" >
+						<logger level="INFO" doc:name="Carta SAPI Error Logger" doc:id="dd75a011-2436-410e-bfa4-364f80a0e621" message="**********Error occurs during sending payload to Carta SAPI Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<logger level="INFO" doc:name="END - sys-post-query-cupa-carta-sapi-flow" doc:id="71202bf1-e984-4114-abaf-534b6c796433" message='#["END - sys-post-query-cupa-carta-sapi-flow"]' />
+	</sub-flow>
+</mule>

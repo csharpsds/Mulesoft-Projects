@@ -1,0 +1,129 @@
+# Project-specific pipeline configuration
+# Copy this file to the root folder of your projects
+
+# Update the default values as needed
+parameters:
+  - name: DEPLOY_ENV
+    displayName: 'Select environment'
+    type: string
+    default: 'Dev'
+    values:
+      - Dev
+      - QA1
+      - QA2
+      - QA3
+      - PP1
+      - PP2
+      - PP3
+      - perf
+      - support
+      - Prod
+
+  - name: MULE_VERSION 
+    displayName: 'Runtime version'
+    type: string
+    default: '4.9.16'
+
+  - name: RELEASE_CHANNEL
+    displayName: 'Release Channel'
+    type: string
+    default: 'LTS'
+    values:
+      - NONE
+      - EDGE
+      - LTS
+
+  - name: JAVA_VERSION
+    displayName: 'Java Version'
+    type: string
+    default: '17'
+
+  - name: REPLICAS
+    displayName: 'Number of replicas'
+    type: number
+    default: 1
+    
+  - name: VCORES
+    displayName: 'vCores'
+    type: string
+    default: '4'
+    values:
+      - 0.1
+      - 0.1
+      - 0.2
+      - 0.5
+      - 1
+      - 1.5
+      - 2
+      - 2.5
+      - 3
+      - 3.5
+      - 4
+
+  - name: UPDATE_STRATEGY
+    displayName: 'Update strategy'
+    type: string
+    default: 'rolling'
+    values:
+      - rolling
+      - recreate
+
+  - name: CLUSTER_MODE
+    displayName: 'Enables clustering across two or more replicas of the application'
+    type: boolean
+    default: false
+    values:
+      - true
+      - false
+
+  - name: REPLICA_ON_DIFFERENT_NODES
+    displayName: 'Enforces the deployment of replicas across different nodes'
+    type: boolean
+    default: false
+    values:
+      - true
+      - false
+
+resources:
+  repositories:
+    - repository: templates
+      type: bitbucket
+      name: cambridgeassessment/cicd
+      ref: template/ch2
+      endpoint: BitbucketServiceConnection
+extends:
+  template: template-pipelines.yml@templates
+  parameters:
+    DEPLOY_ENV: ${{parameters.DEPLOY_ENV}}
+    MULE_VERSION: ${{parameters.MULE_VERSION}}
+    RELEASE_CHANNEL: ${{parameters.RELEASE_CHANNEL}}
+    JAVA_VERSION: ${{parameters.JAVA_VERSION}}
+    REPLICAS: ${{parameters.REPLICAS}}
+    VCORES: ${{parameters.VCORES}}
+    UPDATE_STRATEGY: ${{parameters.UPDATE_STRATEGY}}
+    CLUSTER_MODE: ${{parameters.CLUSTER_MODE}}
+    REPLICA_ON_DIFFERENT_NODES: ${{parameters.REPLICA_ON_DIFFERENT_NODES}}
+    #
+    # If you require project-specific runtime properties, 
+    # 1. enable the RUNTIME_PROPERTIES section 
+    # 2. list down the key-value pairs (1 pair per line), where:
+    #   KEY = property name and should be exactly the same as written in pom.xml
+    #   VALUE = the value for this property
+    #
+    # For reference: The following section in the pom.xml is where you specify project-specific runtime properties
+    #   <cloudhub2Deployment>
+    #     <secureProperties>
+    #       <PROP01>${PROP01}</PROP03>
+    #     </secureProperties>
+    #     <properties>
+    #       <PROP02>${PROP02}</PROP01>
+    #     </properties>
+    #   </cloudhub2Deployment>
+    #
+    # So, your KEY-VALUE pairs should be:
+    #   PROP01: 'some value'
+    #   PROP02: 'some value'
+    #
+    # Uncomment the following lines to list project-specific runtime properties
+    RUNTIME_PROPERTIES: 
+      extract.dynamicPeriod: ${extract.dynamicPeriod}

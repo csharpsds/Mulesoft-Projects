@@ -1,0 +1,88 @@
+api:
+  id: "19513532"
+
+http:
+  request:
+    protocol: "HTTPS"
+    port: "443"
+
+credentials:
+  client_id: "![35/vCOZg4J4wugDLLVxtuWz5/tR+eZz/ph/GEVgrpVV/EPcMmiW/XQ==]"
+  client_secret: "![zZXW0HdDuQeB6ioWBvtDuO6thamvjvAEdlf4M5jiUm7gx0EVrMwyJw==]" 
+        
+salesforceSapi:
+  host: "cupa-salesforce-sapi-5dk5er.internal-8r572k.gbr-e1.cloudhub.io"
+  basePath: "/api"  
+  responseTimeout: "120000"
+  reconnectAttempt: "3"
+  reconnectFrequency: "120000"
+  
+utilitySapi:
+  host: "ca-utility-sapi-5dk5er.internal-8r572k.gbr-e1.cloudhub.io"
+  basePath: "/api"
+  endpoint: "/v1/smtp/emails"
+  responseTimeout: "60000"
+  reconnectFrequency: "30000"
+  reconnectAttempt: "3"
+  
+product-papi:
+  host: "cupa-product-papi-5dk5er.internal-8r572k.gbr-e1.cloudhub.io"
+  base-path: "/api"
+  response-timeout: "240000"
+  recon-frequency: "60000"
+  recon-attempts: "3"
+  
+pubsys-sapi:
+  host: "cupa-pubsys-sapi-5dk5er.internal-8r572k.gbr-e1.cloudhub.io"
+  base-path: "/api"
+  response-timeout: "300000"
+  recon-frequency: "60000"
+  recon-attempts: "3"
+  
+redshift-sapi:
+  host: "cupa-cambridge-dwh-rs-sapi-5dk5er.internal-8r572k.gbr-e1.cloudhub.io"
+  base-path: "/api"
+  response-timeout: "60000"
+  recon-frequency: "300000"
+  recon-attempts: "3"
+  
+carta-sapi:
+  host: "cupa-carta-sapi-5dk5er.internal-8r572k.gbr-e1.cloudhub.io"
+  base: "/api"
+  response_timeout: "240000"
+  reconnect_attempt: "3"
+  reconnect_frequency: "30000"
+  schema:
+    bookentity: "bookentity_sol"
+    crossproduct: "crossproduct_pegasi"
+    reference: "reference_alderaan"
+    reference-custom: "reference_custom"
+    productChanges: "product_changes_trappist"
+    productCustom: "product_custom"
+  
+product-sapi:
+  host: "cupa-odh-sapi-5dk5er.internal-8r572k.gbr-e1.cloudhub.io"
+  base: "/api"
+  response_timeout: "240000"
+  reconnect_attempt: "3"
+  reconnect_frequency: "30000"
+  
+core-sap-replica-sapi:
+  host: "cupa-core-sap-replica-sapi-5dk5er.internal-8r572k.gbr-e1.cloudhub.io"
+  base: "/api"
+  response_timeout: "100000"
+  reconnect_attempt: "3"
+  reconnect_frequency: "30000"
+  
+schema:
+  salesforce: "salesforce"
+
+report:
+  emailSettings:
+    subject: "Report for Salesforce Product Feed"
+  tokenCheck:
+    emailOnSuccess: "true"
+    emailOnFail: "true"
+    sender: "mulesupport@cambridgeassessment.org.uk"
+    recipient: "sfsupport@cambridge.org,MuleDITeam@cambridge.org"
+    

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+	<apikit:config name="api-config"
+		api="${api.specification}" outboundHeadersMapName="outboundHeaders"
+		httpStatusVarName="httpStatus" />
+	<api-gateway:autodiscovery apiId="${api.id}"
+		ignoreBasePath="true" doc:name="API Autodiscovery"
+		doc:id="1145ae10-cc05-40c9-9571-26dee22055c8" flowRef="api-main" />
+	<http:listener-config
+		name="api-http-listener-config">
+		<http:listener-connection host="${http.host}"
+			port="${http.private.port}" />
+	</http:listener-config>
+	<configuration-properties
+		doc:name="Configuration properties"
+		doc:id="4fe7eaa3-3032-4bf5-959d-9c61a92adf68"
+		file="properties/common.yaml" doc:description="Common Properties" />
+	<configuration-properties
+		doc:name="Configuration properties"
+		doc:id="5c3496fa-21c3-412c-b346-cd8ffc2e8ca3"
+		file="properties/${mule.env}.yaml"
+		doc:description="Environment specific properties" />
+	<configuration doc:name="Configuration"
+		doc:id="6415f601-0825-4536-8d48-c087db7ef7b4"
+		defaultErrorHandler-ref="global-error-handler" />
+	<secure-properties:config
+		name="secure-properties-config" doc:name="Secure Properties Config"
+		doc:id="f0b3efd7-360e-468e-8d49-b53bbfb5f7af"
+		file="properties/${mule.env}.yaml" key="${enc.key}">
+		<secure-properties:encrypt
+			algorithm="Blowfish" />
+	</secure-properties:config>
+	<http:request-config name="salesforce-sapi_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="7de26332-6b88-4f1a-9839-8ab214012fc6" basePath="${salesforceSapi.basePath}" responseTimeout="${salesforceSapi.responseTimeout}">
+		<http:request-connection host="${salesforceSapi.host}" port="${http.request.port}" protocol="${http.request.protocol}">
+			<reconnection >
+				<reconnect frequency="${salesforceSapi.reconnectFrequency}" count="${salesforceSapi.reconnectAttempt}" />
+			</reconnection>
+		</http:request-connection>
+		<http:default-headers >
+			<http:default-header key="client-id" value="${secure::credentials.client_id}" />
+			<http:default-header key="client-secret" value="${secure::credentials.client_secret}" />
+		</http:default-headers>
+	</http:request-config>
+	<http:request-config name="utility-sapi_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="52a3ac12-44bb-43d3-ae6b-501fd8ef5037" basePath="${utilitySapi.basePath}" responseTimeout="${utilitySapi.responseTimeout}">
+		<http:request-connection host="${utilitySapi.host}" port="${http.request.port}" protocol="${http.request.protocol}">
+			<reconnection >
+				<reconnect frequency="${utilitySapi.reconnectFrequency}" count="${utilitySapi.reconnectAttempt}" />
+			</reconnection>
+		</http:request-connection>
+	</http:request-config>
+	<http:request-config name="product-papi_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="d57e1eaf-9426-49ab-9b72-2185ef083ba0" basePath="${product-papi.base-path}" responseTimeout="${product-papi.response-timeout}">
+		<http:request-connection host="${product-papi.host}" port="${http.request.port}" protocol="${http.request.protocol}">
+			<reconnection >
+				<reconnect frequency="${product-papi.recon-frequency}" count="${product-papi.recon-attempts}" />
+			</reconnection>
+		</http:request-connection>
+		<http:default-headers >
+			<http:default-header key="client_id" value="${secure::credentials.client_id}" />
+			<http:default-header key="client_secret" value="${secure::credentials.client_secret}" />
+			<http:default-header key="X-TRANSACTION-ID" value="#[vars.transactionId]" />
+		</http:default-headers>
+	</http:request-config>
+	<http:request-config name="pubsys-sapi_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="28bccdd2-60cf-4e46-9864-0e882ed2f668" basePath="${pubsys-sapi.base-path}" responseTimeout="${pubsys-sapi.response-timeout}">
+		<http:request-connection host="${pubsys-sapi.host}" port="${http.request.port}" protocol="${http.request.protocol}">
+			<reconnection >
+				<reconnect frequency="${pubsys-sapi.recon-frequency}" count="${pubsys-sapi.recon-attempts}" />
+			</reconnection>
+		</http:request-connection>
+		<http:default-headers >
+			<http:default-header key="client_id" value="${secure::credentials.client_id}" />
+			<http:default-header key="client_secret" value="${secure::credentials.client_secret}" />
+			<http:default-header key="X-TRANSACTION-ID" value="#[vars.transactionId]" />
+		</http:default-headers>
+	</http:request-config>
+	<http:request-config name="redshift-sapi_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="f629e3b6-7f9a-4283-abe4-a2866626a2bf" basePath="${redshift-sapi.base-path}" responseTimeout="${redshift-sapi.response-timeout}">
+		<http:request-connection host="${redshift-sapi.host}" port="${http.request.port}" protocol="${http.request.protocol}">
+			<reconnection >
+				<reconnect frequency="${redshift-sapi.recon-frequency}" count="${redshift-sapi.recon-attempts}" />
+			</reconnection>
+		</http:request-connection>
+		<http:default-headers >
+			<http:default-header key="client_id" value="${secure::credentials.client_id}" />
+			<http:default-header key="client_secret" value="${secure::credentials.client_secret}" />
+			<http:default-header key="X-TRANSACTION-ID" value="#[vars.transactionId]" />
+		</http:default-headers>
+	</http:request-config>
+	<http:request-config name="carta-sapi_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="9d3bfbcd-c8a5-4de9-8419-63ce7fb30b05" basePath="${carta-sapi.base}" responseTimeout="${carta-sapi.response_timeout}">
+		<http:request-connection host="${carta-sapi.host}" port="${http.request.port}" protocol="${http.request.protocol}">
+			<reconnection >
+				<reconnect frequency="${carta-sapi.reconnect_frequency}" count="${carta-sapi.reconnect_attempt}" />
+			</reconnection>
+		</http:request-connection>
+		<http:default-headers >
+			<http:default-header key="client_id" value="${secure::credentials.client_id}" />
+			<http:default-header key="client_secret" value="${secure::credentials.client_secret}" />
+			<http:default-header key="X-TRANSACTION-ID" value="#[vars.transactionId]" />
+		</http:default-headers>
+	</http:request-config>
+	<http:request-config name="odh-sapi_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="066537f4-d11e-40eb-8371-034c49000b70" basePath="${product-sapi.base}" responseTimeout="${product-sapi.response_timeout}">
+		<http:request-connection host="${product-sapi.host}" port="${http.request.port}" protocol="${http.request.protocol}">
+			<reconnection >
+				<reconnect frequency="${product-sapi.reconnect_frequency}" count="${product-sapi.reconnect_attempt}" />
+			</reconnection>
+		</http:request-connection>
+		<http:default-headers >
+			<http:default-header key="client_id" value="${secure::credentials.client_id}" />
+			<http:default-header key="client_secret" value="${secure::credentials.client_secret}" />
+			<http:default-header key="X-TRANSACTION-ID" value="#[vars.transactionId]" />
+		</http:default-headers>
+	</http:request-config>
+	<os:object-store name="recordsWithoutFilter_Object_store" doc:name="Object store" doc:id="cbe70632-2daa-4170-bd44-11af7d0097d3" />
+	<os:object-store name="recordWithFilter_Object_store" doc:name="Object store" doc:id="b9f70ee9-989c-4a2e-ac9c-ab9b648274c1" />
+	<http:request-config name="core-sap-replica-sapi_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="0b5f732f-e9d9-4d5b-95ea-b47e12533c5d" basePath="${core-sap-replica-sapi.base}" responseTimeout="${core-sap-replica-sapi.response_timeout}">
+		<http:request-connection protocol="${http.request.protocol}" host="${core-sap-replica-sapi.host}" port="${http.request.port}" >
+			<reconnection >
+				<reconnect frequency="${core-sap-replica-sapi.reconnect_frequency}" count="${core-sap-replica-sapi.reconnect_attempt}" />
+			</reconnection>
+		</http:request-connection>
+		<http:default-headers >
+			<http:default-header key="client-id" value="${secure::credentials.client_id}" />
+			<http:default-header key="client-secret" value="${secure::credentials.client_secret}" />
+			<http:default-header key="X-TRANSACTION-ID" value="#[vars.transactionId]" />
+		</http:default-headers>
+	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="8cb926e3-f75b-43db-9367-6113949bb7e9" file="properties/sf-category.yaml" />
+
+</mule>

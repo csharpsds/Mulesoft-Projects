@@ -1,0 +1,6 @@
+{
+    "queryString": "SELECT EAN_NUMBER , cbo.CBO_PRODUCT_GROUP AS coreProductGroupCode, pg.CCP_PRODUCT_GROUP_LEGEND  AS coreProductGroup\r\nFROM ORALIV.CORE_ISBN_CBO cbo\r\nLEFT JOIN  APP_SYSREF.SR_CCP_PRODUCT_GROUP_ORA pg ON cbo.CBO_PRODUCT_GROUP = pg.CCP_PRODUCT_GROUP \r\nWHERE EAN_NUMBER = :eanNumber",
+    "bindValues": {
+        "eanNumber": "9781108974431"
+    }
+}

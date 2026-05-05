@@ -1,0 +1,49 @@
+[
+    {
+        "isbn13": "9781009330992",
+        "salesStatuses": [
+            {
+                "salesOrg": "1214",
+                "code": "S3",
+                "date": "2022-07-15T00:00:00",
+                "description": "Available to Supply",
+                "businessUse": "All sales transactions allowed, including delivery to customers. When stock is received, it will be delivered to customers independent of publication date or answer code. Default on ISBN creation for publicity (material type ZPUB) and services (material type ZDIN). ISBN to remain at this status from 1st delivery to customers until withdrawal of ISBN from circulation",
+                "message": "Product available to supply",
+                "blockInquiry": "N",
+                "blockQuotation": "N",
+                "blockSalesOrder": "N",
+                "blockproductProposal": "N",
+                "blockschedulingAgreement": "N",
+                "blockvalueContract": "N",
+                "blockquantityContract": "N",
+                "blockReturns": "N",
+                "blockFreeOrder": "N",
+                "blockDelivery": "N",
+                "blockCreditMemo": "N",
+                "blockdebitMemo": "N",
+                "deliveryBlock": "N"
+            },
+            {
+                "salesOrg": "1201",
+                "code": "S3",
+                "date": "2022-07-15T00:00:00",
+                "description": "Available to Supply",
+                "businessUse": "All sales transactions allowed, including delivery to customers. When stock is received, it will be delivered to customers independent of publication date or answer code. Default on ISBN creation for publicity (material type ZPUB) and services (material type ZDIN). ISBN to remain at this status from 1st delivery to customers until withdrawal of ISBN from circulation",
+                "message": "Product available to supply",
+                "blockInquiry": "N",
+                "blockQuotation": "N",
+                "blockSalesOrder": "N",
+                "blockproductProposal": "N",
+                "blockschedulingAgreement": "N",
+                "blockvalueContract": "N",
+                "blockquantityContract": "N",
+                "blockReturns": "N",
+                "blockFreeOrder": "N",
+                "blockDelivery": "N",
+                "blockCreditMemo": "N",
+                "blockdebitMemo": "N",
+                "deliveryBlock": "N"
+            }
+        ]
+    }
+]

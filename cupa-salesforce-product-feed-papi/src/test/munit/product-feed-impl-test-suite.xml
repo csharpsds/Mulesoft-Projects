@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="product-feed-impl-test-suite.xml" />
+	<munit:test name="product-feed-impl-product-changes-success-create-test-suite" doc:id="824cc144-7c40-482b-9eeb-0622532bfac2" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Product Changes - CREATE" doc:id="b66282f7-bbd7-416a-aa55-bb688490bfc4" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="CREATE /v2/product-changes" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="2d8a2163-5df4-4233-85ed-110f058b4daf" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="product-papi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/product-changes-response-payload.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="dd8f75b8-5912-4bf2-b419-a3816f36785b" >
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-set-event-create-attributes.json')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Product Changes - Create" doc:id="fc445dc2-bc71-4ef7-a764-56e5ae565c8b" name="request-cupa-product-papi-product-changes-created-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="447e225b-64b2-494c-a66f-5421de1f9370" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="5de0eb4a-a08f-4ca9-a1b6-52f8f7d116e0" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload.isbn13 must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-product-changes-success-update-test-suite" doc:id="d1a49308-0baf-4c2a-ba9f-c3db96da3279" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Product Changes - UPDATE" doc:id="9d807ce8-7398-4fc7-afa8-ae58fb2b7e9b" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="UPDATE /v2/product-changes" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="b651728c-1f30-4202-8718-9e6c63edcbdf" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="product-papi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/product-changes-response-payload.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="9aafd152-e028-42e8-bc2a-2aee8f7277de" >
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-set-event-update-attributes.json')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Product Changes - Update" doc:id="58187857-8895-4c7d-a371-bc220f1dec40" name="request-cupa-product-papi-product-changes-updated-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="27e8216b-9624-4b80-9238-4b8156dd0c91" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="8ee7e576-baad-44fc-a7c4-eec9538c0e3a" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload.isbn13 must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-sales-status-success-test-suite" doc:id="a57c1e9d-f086-4880-bdec-f67160d0966f">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Sales Status" doc:id="55d32378-ce53-4ccc-b264-6434ddd8c48b" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="/sales-status" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="4a1cdccd-0c7b-4350-a0a9-06d34e225d9d" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="redshift-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/sales-status-response-payload.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="6bc4eb62-daba-4a0f-9155-f54ea5f3a016" >
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/request-isbn13.json')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Sales Status" doc:id="aa688774-555d-4f8c-adab-4e71208f0782" name="request-redshift-sales-status-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="2cdfd07b-7bb3-41c7-ab09-da6d5f0f9441" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="7a689733-8328-49c0-9f09-b5035476c305" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload.salesStatuses must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-global-publication-status-success-test-suite" doc:id="9c09a1e2-4fe4-4fc1-b1f6-2600c8548b8f" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Global Publication Status" doc:id="b4922130-7f68-4421-9f35-b1b2319196d3" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="/global-publication-status" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="114b1c2f-217b-4b3a-8db9-84b208136337" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="pubsys-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/pubsys-global-publication-status-success-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="1d244e43-cda2-4814-bd38-9f5b313fe5a6" >
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/request-isbn13.json')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Global Publication Status" doc:id="d5748857-b9a0-411c-af3a-83aae92fa265" name="request-cupa-pubsys-sapi-global-pub-status-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="19c36afd-a688-4db2-a11b-413d2f027d58" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="ef5ca9f8-245e-441f-a93f-2424c03d950b" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:assert doc:name="payload.globalPublicationStatus is Object" doc:id="380825ae-c92a-484b-b000-ce8d85662c18" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload.globalPublicationStatus[0] must beObject()]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:assert doc:name='dataReleaseFlag must equalTo "Y"' doc:id="1e600a70-4d55-41b3-b6d9-e725d05a4e40" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload.ext.dataReleaseFlag[0] must equalTo("Y")]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-market-restriction-success-test-suite" doc:id="939bb3f2-b659-46bf-a75c-152957f313fa" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Market Restriction" doc:id="8950fdd2-1f23-4826-b76c-2940cb380e3b" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="/market-restriction" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="c8e35b14-f3ca-4658-91f7-85837e964997" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="pubsys-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/pubsys-market-restriction-success-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="9803f8a8-64df-4e0e-a2ae-0c504997d9ff" >
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/request-isbn13.json')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Market Restriction" doc:id="a17039a9-cc5d-4b9e-8da7-c796408c7ee6" name="request-cupa-pubsys-sapi-market-restriction-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="2da4f5cd-7b7a-4f29-883c-59e9ec820d58" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="f403f69e-3a34-4cac-9f65-a4977c8fb592" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-contributions-success-test-suite" doc:id="ee3928fc-ba09-4eb3-8ff4-868d7f1231ec" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Contributions" doc:id="cca2b25e-9f5c-4e86-996d-927b17cca513" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="/contributions" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="c6f755b1-7b95-4615-8f52-0bff61a5eb51" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="carta-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/carta-contributions-success-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="757cd1b5-4c6d-4577-bd1d-87ac459aee8b" >
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/request-contributions-isbn13.json')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Contributions" doc:id="8acd6640-4d69-4ed9-a741-225eac9e98ea" name="request-cupa-carta-sapi-contributions-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="3c1001de-c745-40c8-8bae-8eebd6246e9e" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="d410463e-b181-4c0c-ac41-e87aba13936e" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:assert doc:name="Payload array must have item" doc:id="08029eff-610e-4497-85e4-2fdf55f8a5e5" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must haveItem(beObject())]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-v2-product-success-test-suite" doc:id="435f1a5d-60ff-4ac3-b102-f432a30cfbab" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when V2 Product" doc:id="a0785008-23b8-4c2a-99d3-fd5b7e47b4ba" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="/v2/product" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="0ef16a15-e693-465d-8995-42bd6aefc01a" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="product-papi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/carta-v2-product-success-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="376f07b5-4c1e-4f92-89c7-f2d4b999202c" >
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/request-contributions-isbn13.json')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="v2 Product" doc:id="f62f4ea7-3268-4480-8987-e9e1f34b655c" name="request-cupa-product-papi-product-v2-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="a784ff31-f9de-4d50-a620-6cbeff16fc55" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="5992f9a8-022e-47d4-86a2-0fb39da008e0" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:assert doc:name="Payload array must have item" doc:id="d32f18c7-642d-4b49-a085-ccff9ad81167" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must haveItem(beObject())]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-regional-availability-success-test-suite" doc:id="cf296227-62d9-4111-a4c4-9257d60c581a" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Regional Availability" doc:id="a50fe38f-070f-42ad-9bcd-41437b19983b" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Regional Availability" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="423d267e-7c3f-4e24-a5d7-72ab4216b70b" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="odh-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/odh-regional-availability-success-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="d4e3945e-7483-4aaf-b092-833c7cba8737" >
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/odh-regional-availability-attributes.json')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Regional Availability" doc:id="f79abf51-3b7b-4ce4-ab0f-149ff59d6d94" name="cupa-odh-sapi-regional-availability-sub-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="abcb1323-d4d6-4e0b-9f08-573c35df6ce4" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="17fbaf8d-ee10-42b0-bf25-07dff2329d17" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:assert doc:name="Payload array must have item" doc:id="e5522fcc-d92b-4b2f-8328-5bcc74424757" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must haveItem(beObject())]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-product-internal-success-test-suite" doc:id="4bbb4c69-b8b1-4e76-aea6-0b1fc13e58c7" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Product Internal" doc:id="8526f805-8e34-4cb4-b2f2-4b2dc95297b4" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Carta SAPI" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="40c0b381-7948-4300-b482-59df9907039d" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="carta-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/product-internal-success-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="dae8f12f-8814-44a1-b50f-8abed5278652" >
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/request-contributions-isbn13.json')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:variables >
+					<munit:variable key="cartaPath" value="#[readUrl('classpath://sample_data/product-internal-path.json')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Product Internal" doc:id="e6664237-e516-491c-b860-515b8a708f58" name="cupa-carta-sapi-sub-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="6e7590da-f231-4535-97d0-52de796183d0" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="9d0826b5-310e-406c-9bfa-4f7fc98fda56" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:assert doc:name="Payload array must have item" doc:id="4c7bc2c7-69d6-430e-bac0-40c6c0206855" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must haveItem(beObject())]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-product-main-success-test-suite" doc:id="409a4e16-3a45-4ee1-a0a6-1afa39f65662" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Product Main" doc:id="faebb33c-cec7-415a-b198-2ecc40268805" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Carta SAPI" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="40c0b381-7948-4300-b482-59df9907039d" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="carta-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/product-main-success-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="86831eb3-c453-425c-8bc7-1c25fa0b2ec0" >
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/request-contributions-isbn13.json')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:variables >
+					<munit:variable key="cartaPath" value="#[readUrl('classpath://sample_data/product-main-path.json')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Product Main" doc:id="253f6cd4-2992-49fd-b10f-f264b5b73885" name="cupa-carta-sapi-sub-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="15cfc0aa-958a-4e31-9b15-347c678ed429" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="f4494940-282f-49f3-a947-157409c0684c" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:assert doc:name="Payload array must have item" doc:id="dd57c833-0271-4fea-ad6f-4bca0a37b900" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must haveItem(beObject())]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-cambridge-core-success-test-suite" doc:id="7499fe90-231f-489f-9ce6-341e26ae4574" >
+		<munit:behavior >
+			<munit:set-event doc:name="Set Event" doc:id="cffde303-c13e-493f-95fb-0839cccc3065">
+				<munit:payload value="#[output application/json --- readUrl('classpath://sample_data/odh-cambridge-core-request.json')]" />
+				<munit:attributes encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<munit-tools:mock-when doc:name="Mock when Cambridge Core" doc:id="3f33dab1-35f0-4689-8fca-1fcc21ea9891" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="POST: /query" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="22409554-15b6-47e1-815a-1c832a62ea2a" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="odh-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/odh-cambridge-core-success-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="3d1b19ec-a539-4f55-b2b6-ae56c0a567d8" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://sample_data/request-cambridge-core-isbn13.json')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Cambridge Core" doc:id="a5e7a502-a3cf-4b9a-b4bb-be7f0a1bf14b" name="post-odh-query-endpoint-cambridgeCore-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="1bf92906-c6d1-4f51-9825-76b2cae78359" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="4148978b-7f14-4c79-b3d8-a4e3d31224ba" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:assert doc:name="Payload array must have item" doc:id="cc5ce7eb-c551-4b29-8ffc-d6a548e83d4a" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must haveItem(beObject())]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-send-email-success-test-suite" doc:id="5f015e17-39a6-4346-ad37-fe615c906198" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Send Email" doc:id="632e4dd6-6b37-456a-a971-66e6e57bee09" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Post: Send Email" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="e6951180-c0b0-4679-881f-bd7b63ab1585" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="utility-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/send-email-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="e603e0d8-5cd0-4e2b-9e04-ce520421bbf7" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://sample_data/send-email-request.json')]" encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Utility SAPI" doc:id="bce176ea-769d-495b-a177-b6e03341b9dc" name="send-email-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="030e2d7d-fffe-4177-8d00-894a1a39e234" />
+			<munit-tools:assert doc:name="Payload must be object" doc:id="b26444ca-2d2e-480f-9676-277f2797c0b2" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must beObject()]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-sf-sapi-execute-query-success-test-suite" doc:id="49388570-a772-499c-8dfc-fe880bc216d3" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Salesforce SAPI - executeQuery" doc:id="62aac14d-c40b-42aa-ad09-ac8ab4ace521" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="/executeQuery" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="a8adb476-9f2d-49ec-8f27-5a9972b3bf42" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="salesforce-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/salesforce-sapi-execute-query-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="48776e18-86a0-4a76-9f49-cbc4a3bc31ce" >
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/salesforce-sapi-execute-query-attributes.json')]" />
+			</munit:set-event>
+			<flow-ref doc:name="Salesforce SAPI - executeQuery" doc:id="45481069-c36a-41d9-a91c-5944a2ba1510" name="get-execute-query-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="c21b2a1e-c7da-40d2-92ba-4769ab73d870" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="267f9822-4bd9-4913-a8a3-e1e9597b48cb" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must beArray()]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-sf-sapi-update-object-success-test-suite" doc:id="a02c8941-4fb8-4ea5-88a8-4dfc284cae66" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when Salesforce SAPI - Update Object Product2" doc:id="5ad8ff75-20b2-43c7-8f46-3b3f74b7d7ac" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="PUT: /object/product2" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="04d7f533-e3a7-40a6-b2ef-a5cf303e16f3" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="salesforce-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://sample_data/salesforce-sapi-update-success-response.json')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="892053e0-8b56-463d-96f5-824059ba6cd6" >
+				<munit:payload value="#[output application/java --- readUrl('classpath://sample_data/salesforce-sapi-update-object-request-payload.json')]" encoding="UTF-8" mediaType="application/java" />
+			</munit:set-event>
+			<flow-ref doc:name="Salesforce SAPI - Update Object Product 2" doc:id="0b7b9408-c6d3-4a50-8129-7e52c06ecb8e" name="put-object-product2-flow" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Payload not null" doc:id="9ca8bcee-c24e-45d3-a2bf-16ef9e2096b0" />
+			<munit-tools:assert doc:name="Payload must be array" doc:id="c6f6e4dd-4453-4bc6-b620-d725c45e8500" >
+				<munit-tools:that ><![CDATA[#[import * from dw::test::Asserts 
+ ---
+payload must beObject()]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="907719db-e4b0-422e-98a4-3e0517a47d8d" actual="#[payload.successful]" expected='#[true]' message='#["Successful Field is false"]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-test-suite-get-existing-isbn13-to-sf-by-batch-success-test-suite" doc:id="c959b62a-91c6-4796-a583-3a6d0ee9b628" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when GET executeQuery" doc:id="d08cd203-c869-453e-96a2-660a487f3ee7" processor="http:request">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="/executeQuery" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="a8adb476-9f2d-49ec-8f27-5a9972b3bf42" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="salesforce-sapi_HTTP_Request_configuration" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://sample_data/salesforce-sapi-execute-query-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when Salesforce SAPI - executeQuery" doc:id="ee2ace61-93d2-4f98-bd11-a0870c9bece1" processor="flow-ref" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Salesforce - /executeQuery" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="5b0a9567-7d17-4cf3-9189-918fbcccf815" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:attributes value="#[output application/json --- readUrl('classpath://sample_data/product-changes-request-attributes.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="sfdcISBN13List" value="#[output application/json --- readUrl('classpath://sample_data/salesforce-sapi-execute-query-response.json')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="d61034db-7132-4318-bf50-b9221a56f479" >
+				<munit:variables >
+					<munit:variable key="isbnList" value="#[output application/json --- readUrl('classpath://sample_data/get-existing-isbn13-to-sf-by-batch-request-payload.json')]" encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get-existing-isbn13-to-sf-by-batch" doc:id="df314a8b-88f2-46e5-bdcd-1c73e8028eb2" name="get-existing-isbn13-to-sf-by-batch"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:verify-call doc:name="Verify call" doc:id="a5e62757-ee86-4ee4-8488-8e02624583fd" processor="set-payload">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Set Payload" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="5bd95225-f42c-4495-9196-38bce35942a2" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+			<!-- [STUDIO:"Assert that"]<munit-tools:assert-that doc:name="Assert that" doc:id="18aefd4c-d987-40d7-811d-a50661463d28" is="#[MunitTools::getResourceAsString(readUrl('classpath://sample_data/get-existing-isbn13-to-sf-by-batch-response-payload.json'))&#93;" expression="#[payload&#93;"/> [STUDIO] -->
+		</munit:validation>
+	</munit:test>
+	<munit:test name="product-feed-impl-test-suite-product-feed-impl-sub-flowTest" doc:id="c9c75665-16d5-4e45-bd27-05ac26b95b31" description="Test" timeOut="1800000">
+		<munit:behavior>
+			<munit-tools:spy doc:name="Spy" doc:id="a1dea751-acbb-4172-bf3c-ac74eb207667" processor="ee:transform">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Status Payload" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="6c765925-84d7-4a37-a12b-3c5a32345c83" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:after-call >
+					<munit-tools:assert-that doc:name="Assert that" doc:id="84d6aa7b-f7b2-4ebd-bfe3-40854348e27f" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+				</munit-tools:after-call>
+			</munit-tools:spy>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="d93ee04f-7deb-4f0b-b204-d28ea8274b10">
+				<munit:attributes value="#[output application/json --- readUrl('classpath://sample_data/get-product-feed-impl-sub-flow-attributes.json')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:variables >
+					<munit:variable key="methodIdentifier" value='"GET"' encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to product-feed-impl-sub-flow" doc:id="9f7f9430-0440-4dd4-aa40-aa4aabd6c084" name="product-feed-impl-sub-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="d56384c2-37cc-46f9-b296-d153e50efee0" processor="ee:transform">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Status Payload" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="6c765925-84d7-4a37-a12b-3c5a32345c83" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

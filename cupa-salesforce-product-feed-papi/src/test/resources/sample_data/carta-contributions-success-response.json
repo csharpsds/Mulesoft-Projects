@@ -1,0 +1,49 @@
+[
+    {
+        "isbn13": "9780521575829",
+        "contributions": [
+            {
+                "sequence": 1,
+                "onixRoleCode": "A01",
+                "onixRoleLegend": "By (author)",
+                "onixRoleDescription": "Author of a textual work",
+                "cambridgeRoleCode": "AU",
+                "cambridgeRoleLegend": "Author",
+                "cambridgeRoleDescription": "Author",
+                "forename": "Richard",
+                "surname": "Walton",
+                "affiliation": [
+                    {
+                        "type": "book",
+                        "institutionName": "The Oxford English Centre"
+                    },
+                    {
+                        "type": "current",
+                        "institutionName": "The Oxford English Centre"
+                    }
+                ]
+            },
+            {
+                "sequence": 2,
+                "onixRoleCode": "A01",
+                "onixRoleLegend": "By (author)",
+                "onixRoleDescription": "Author of a textual work",
+                "cambridgeRoleCode": "AU",
+                "cambridgeRoleLegend": "Author",
+                "cambridgeRoleDescription": "Author",
+                "forename": "Mark",
+                "surname": "Bartram",
+                "affiliation": [
+                    {
+                        "type": "book",
+                        "institutionName": "St Clare's, Oxford"
+                    },
+                    {
+                        "type": "current",
+                        "institutionName": "St Clare's, Oxford"
+                    }
+                ]
+            }
+        ]
+    }
+]

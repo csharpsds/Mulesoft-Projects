@@ -1,0 +1,25 @@
+[
+    {
+        "isbn13": "9781009101059",
+        "globalPublicationStatus": {
+            "code": "02",
+            "description": "Forthcoming",
+            "message": "Not yet published; must be accompanied by the expected date in <PublicationDate> in ONIX 2.1, or its equivalent in the <PublishingDate> composite in ONIX 3.0",
+            "publicationDate": "2023-03-15T00:00:00"
+        },
+        "ext": {
+            "parentIsbn13": null,
+            "isComponent": "No",
+            "globalPubDate": "2023-03-15T00:00:00",
+            "parentGlobalPubDate": null,
+            "componentStatus": "In Production",
+            "parentComponentStatus": null,
+            "componentStatusActiveFlag": "Y",
+            "componentStatusStage": 4,
+            "dataReleaseFlag": "Y",
+            "parentDataReleaseFlag": "N",
+            "responsibilityCode": "N",
+            "productGroupCode": "E"
+        }
+    }
+]

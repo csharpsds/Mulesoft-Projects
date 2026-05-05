@@ -1,0 +1,87 @@
+api:
+  id: "19446880"
+  
+http:
+  request:
+    protocol: "HTTPS"
+    port: "443"
+
+credentials:
+  client_id: "![rAwhIkpWYgYMvgvLzhVfULyGUmznsAdpdYUuY6aDJy6mXX/owhZYCQ==]"
+  client_secret: "![xoqCO1icDlJWpjRMqK+J5oR34TZs1QXje6FTnuspB5lMF/hKs1fG9g==]"
+  
+salesforceSapi:
+  host: "ch2-apis-sandbox.cambridgeassessment.org.uk"
+  basePath: "/cupa-salesforce-sapi-qa2/api"  
+  responseTimeout: "120000"
+  reconnectAttempt: "3"
+  reconnectFrequency: "120000"
+  
+utilitySapi:
+  host: "ch2-apis-sandbox.cambridgeassessment.org.uk"
+  basePath: "/ca-utility-sapi-dev/api"
+  endpoint: "/v1/smtp/emails"
+  responseTimeout: "60000"
+  reconnectFrequency: "30000"
+  reconnectAttempt: "3"
+  
+product-papi:
+  host: "ch2-apis-sandbox.cambridgeassessment.org.uk"
+  base-path: "/cupa-product-papi-dev/api"
+  response-timeout: "240000"
+  recon-frequency: "60000"
+  recon-attempts: "3"
+  
+pubsys-sapi:
+  host: "ch2-apis-sandbox.cambridgeassessment.org.uk"
+  base-path: "/cupa-pubsys-sapi-dev/api"
+  response-timeout: "300000"
+  recon-frequency: "60000"
+  recon-attempts: "3"
+  
+redshift-sapi:
+  host: "ch2-apis-sandbox.cambridgeassessment.org.uk"
+  base-path: "/cupa-cambridge-dwh-rs-sapi-dev/api"
+  response-timeout: "60000"
+  recon-frequency: "300000"
+  recon-attempts: "3"
+  
+carta-sapi:
+  host: "ch2-apis-sandbox.cambridgeassessment.org.uk"
+  base: "/cupa-carta-sapi-dev/api"
+  response_timeout: "240000"
+  reconnect_attempt: "3"
+  reconnect_frequency: "30000"
+  schema:
+    bookentity: "bookentity_arcturus"
+    crossproduct: "crossproduct_sirius"
+    reference: "reference_alderaan"
+    reference-custom: "reference_custom"
+    productChanges: "product_changes_procyon"
+    productCustom: "product_custom"
+  
+product-sapi:
+  host: "ch2-apis-sandbox.cambridgeassessment.org.uk"
+  base: "/cupa-odh-sapi-dev/api"
+  response_timeout: "240000"
+  reconnect_attempt: "3"
+  reconnect_frequency: "30000"
+  
+core-sap-replica-sapi:
+  host: "ch2-apis-sandbox.cambridgeassessment.org.uk"
+  base: "/cupa-core-sap-replica-sapi-dev/api"
+  response_timeout: "240000"
+  reconnect_attempt: "3"
+  reconnect_frequency: "30000"
+  
+schema:
+  salesforce: "salesforce_qa"
+
+report:
+  emailSettings:
+    subject: "Report for Salesforce Product Feed"
+  tokenCheck:
+    emailOnSuccess: "true"
+    emailOnFail: "true"
+    sender: "mulesupport@cambridgeassessment.org.uk"
+    recipient: "jordan.panlaqui@cambridge.org"

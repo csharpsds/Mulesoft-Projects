@@ -1,0 +1,34 @@
+[
+    {
+        "isbn13": "9780521575829",
+        "productMain": {
+            "sapIdLevel3": "2700059377",
+            "e-issn": "",
+            "p-issn": "",
+            "title": "Student's book",
+            "subTitle": "",
+            "titleShort": "Initiative SB",
+            "author": "Walton/Bartram",
+            "digitalPhysical": "P",
+            "onixProductForm": {
+                "code": "BC",
+                "description": "Paperback or other softback book",
+                "legend": "Paperback / softback"
+            },
+            "onixProductDetail": [],
+            "cambridgeFormat": {
+                "code": "PB",
+                "description": "Paperback"
+            },
+            "publishers": [
+                {
+                    "code": "CUP",
+                    "description": "Cambridge University Press",
+                    "legend": "Cambridge University Press"
+                }
+            ],
+            "bibliographicTitle": "Initiative Student's book",
+            "eReviewISBN": ""
+        }
+    }
+]

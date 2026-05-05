@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="sys-post-query-cupa-odh-sapi-flow" doc:id="023720e4-3541-4964-9654-d1f0103c232d" >
+		<logger level="INFO" doc:name="START - sys-post-query-cupa-odh-sapi-flow" doc:id="da7966cf-91db-47dc-8a8a-5018f58045dc" message='#["START - sys-post-query-cupa-odh-sapi-flow"]'/>
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="acf76c2d-333b-4775-b03d-d2ef53608da5" millisBetweenRetries="5000">
+			<try doc:name="Try" doc:id="e0a7aea3-b0eb-4b53-85a3-f090aad66ea5" >
+				<http:request method="POST" doc:name="POST /query" doc:id="d47760d5-e2ad-458f-9d69-72c60928d839" config-ref="odh-sapi_HTTP_Request_configuration" path="${paths.odh-sapi.query}" />
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3ef07438-8e02-4b97-acfd-cdf095a251a3" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS" >
+						<logger level="INFO" doc:name="ODH Cambridge Core Error Logger" doc:id="abc8fb1a-7d63-4217-9fc3-3e7e35e0011b" message="**********Error occurs during sending payload to ODH CambridgeCoreI Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<logger level="INFO" doc:name="END - sys-post-query-cupa-odh-sapi-flow" doc:id="d37e8024-116f-4dcf-9cfd-78824fbe3102" message='#["END - sys-post-query-cupa-odh-sapi-flow"]' />
+	</sub-flow>
+</mule>

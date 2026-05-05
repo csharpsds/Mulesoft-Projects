@@ -1,0 +1,10 @@
+{
+	"header":{
+			"X-TRANSACTION-ID" : "12345675673452123",
+			"client_secret" : "b2dab9d3e034489c908b27ae9f954f67",
+			"client_id" : "4d495041779247529392C0961868D30F"
+		},
+	"queryParams":{
+			"isbn13": "9781009101059"
+		}
+}

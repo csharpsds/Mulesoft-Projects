@@ -1,0 +1,613 @@
+[
+    {
+        "isbn13": "9780521575829",
+        "productMain": {
+            "sapIdLevel3": "2700059377",
+            "e-issn": "",
+            "p-issn": "",
+            "title": "Student's book",
+            "subTitle": "",
+            "titleShort": "Initiative SB",
+            "author": "Walton/Bartram",
+            "digitalPhysical": "P",
+            "onixProductForm": {
+                "code": "BC",
+                "description": "Paperback or other softback book",
+                "legend": "Paperback / softback"
+            },
+            "onixProductDetail": [],
+            "cambridgeFormat": {
+                "code": "PB",
+                "description": "Paperback"
+            },
+            "publishers": [
+                {
+                    "code": "CUP",
+                    "description": "Cambridge University Press",
+                    "legend": "Cambridge University Press"
+                }
+            ],
+            "bibliographicTitle": "Initiative Student's book",
+            "eReviewISBN": ""
+        },
+        "relatedProducts": [],
+        "bookHierarchy": {
+            "sapIdLevel3": "2700059377",
+            "sapIdLevel2": "2400019143",
+            "masterTitle": "Initiative",
+            "masterSubtitle": null,
+            "sapIdLevel1": "2100018274",
+            "familyTitle": "Initiative",
+            "familySubtitle": "A course for advanced learners",
+            "issueSubtitle": null
+        },
+        "productBlurbs": [
+            {
+                "blurbType": "Blurb 15",
+                "blurbText": "Initiative is a general English course which meets the needs of more advanced learners."
+            },
+            {
+                "blurbType": "Blurb 50",
+                "blurbText": "Initiative is a general English course which meets the needs of more advanced learners."
+            },
+            {
+                "blurbType": "Blurb 150",
+                "blurbText": "With its main focus on reading and writing, Initiative is appropriate for groups of adults/young adults who prefer a more serious approach to language, perhaps as part of their academic studies.  The course emphasises vocabulary work and grammar exercises in order to ensure success in written assignments."
+            },
+            {
+                "blurbType": "Blurb 90",
+                "blurbText": "Initiative is a general English course which meets the needs of more advanced learners."
+            },
+            {
+                "blurbType": "Sales Points",
+                "blurbText": "*strong focus on reading and writing, with special attention paid to discourse analysis throughout \r*encourages autonomous learning by consistent attention to study skills\r*particularly suitable for larger classes where pairwork and groupwork are not always practical\r "
+            },
+            {
+                "blurbType": "Readership",
+                "blurbText": "adult learners of English as a foreign language"
+            },
+            {
+                "blurbType": "Blurb Family Level",
+                "blurbText": "Initiative is a general English course which meets the needs of more advanced learners."
+            }
+        ],
+        "assets": [
+            {
+                "assetType": "Website Cover (Gif format)",
+                "assetUrl": "https://assets.cambridge.org/97805215/75829/cover/9780521575829.gif"
+            },
+            {
+                "assetType": "Website Cover (Jpeg format)",
+                "assetUrl": "https://assets.cambridge.org/97805215/75829/cover/9780521575829.jpg"
+            },
+            {
+                "assetType": "Large Size Cover (Ingrams format, Jpeg)",
+                "assetUrl": "https://assets.cambridge.org/97805215/75829/large_cover/9780521575829i.jpg"
+            },
+            {
+                "assetType": "Website Thumbnail (Gif format)",
+                "assetUrl": "https://assets.cambridge.org/97805215/75829/thumb/9780521575829t.gif"
+            },
+            {
+                "assetType": "Website Thumbnail (Jpeg format)",
+                "assetUrl": "https://assets.cambridge.org/97805215/75829/thumb/9780521575829t.jpg"
+            },
+            {
+                "assetType": "HTML Marketing Description",
+                "assetUrl": "https://assets.cambridge.org/97805215/75829/description/9780521575829_description.htm"
+            }
+        ],
+        "educational": {
+            "contentCategoryCode": "C1",
+            "contentCategory": "Adult Learners",
+            "bicEduQualCode1": null,
+            "bicEduQual1": null,
+            "bicEduQualCode2": null,
+            "bicEduQual2": null,
+            "bicEduQualCode3": null,
+            "bicEduQual3": null,
+            "cefrLevelFrom": null,
+            "cefrLevelTo": null,
+            "languages": [
+                "English"
+            ],
+            "languageVariety": "British English"
+        },
+        "editionVolumePart": {
+            "masterEditionNumber": 1,
+            "masterEditionType": "STU",
+            "masterVolumeNumber": null,
+            "masterVolumeName": null,
+            "masterPartNumber": null,
+            "masterPartTitle": null,
+            "familyEditionNumber": 0,
+            "familyEditionStatement": null
+        },
+        "openAccess": {
+            "oaFlag": null,
+            "ccl": null
+        },
+        "productSizes": [
+            {
+                "type": "pageExtent",
+                "value": 160
+            },
+            {
+                "type": "weight_kg",
+                "value": 0.493
+            },
+            {
+                "type": "depth_mm",
+                "value": 10
+            },
+            {
+                "type": "height_mm",
+                "value": 298
+            },
+            {
+                "type": "width_mm",
+                "value": 212
+            }
+        ],
+        "productEvents": [
+            {
+                "eventType": "create",
+                "eventTimestamp": "1996-01-04T00:00:00Z"
+            },
+            {
+                "eventType": "global_pub_date",
+                "eventTimestamp": "2000-01-05T00:00:00Z"
+            },
+            {
+                "eventType": "global_first_pub_date",
+                "eventTimestamp": "2000-03-30T00:00:00Z"
+            }
+        ],
+        "productInternal": {
+            "vistaDivisionCode": "CA",
+            "vistaDivision": "Cambridge University Press",
+            "vistaProfitCentreCode": "C",
+            "vistaProfitCentre": "Europe",
+            "divisionalSubjectCode": "EQ",
+            "divisionalSubject": "ELT-Students book without answers",
+            "imprintCode": "4A",
+            "imprint": "ELT Adult and Grammar",
+            "seriesCode": null,
+            "series": null,
+            "masterDivisionCode": "10",
+            "masterDivision": "ELT Division",
+            "masterProfitCentreCode": "1002",
+            "masterProfutCentre": null
+        },
+        "subscription": {
+            "value": "",
+            "unit": null,
+            "unitCode": null
+        },
+        "pricesCurrent": [
+            {
+                "salesOrg": "1214",
+                "distrChannel": "00",
+                "priceType": "01",
+                "priceTypeQual": "05",
+                "priceStatus": "02",
+                "currency": "USD",
+                "price": "28.25"
+            },
+            {
+                "salesOrg": "1214",
+                "distrChannel": "00",
+                "priceType": "01",
+                "priceTypeQual": "05",
+                "priceStatus": "02",
+                "currency": "CAD",
+                "price": "31.95"
+            },
+            {
+                "salesOrg": "1201",
+                "distrChannel": "00",
+                "priceType": "01",
+                "priceTypeQual": "05",
+                "priceStatus": "02",
+                "currency": "GBP",
+                "price": "19.90"
+            },
+            {
+                "salesOrg": "1288",
+                "distrChannel": "00",
+                "priceType": "01",
+                "priceTypeQual": "05",
+                "priceStatus": "02",
+                "currency": "USD",
+                "price": "31.20"
+            },
+            {
+                "salesOrg": "1201",
+                "distrChannel": "00",
+                "priceType": "01",
+                "priceTypeQual": "05",
+                "priceStatus": "02",
+                "currency": "EUR",
+                "price": "23.23"
+            },
+            {
+                "salesOrg": "2501",
+                "distrChannel": "10",
+                "priceType": "02",
+                "priceTypeQual": "05",
+                "priceStatus": "02",
+                "currency": "AUD",
+                "price": "60.95"
+            },
+            {
+                "salesOrg": "2501",
+                "distrChannel": "10",
+                "priceType": "02",
+                "priceTypeQual": "05",
+                "priceStatus": "02",
+                "currency": "NZD",
+                "price": "75.95"
+            },
+            {
+                "salesOrg": "5401",
+                "distrChannel": "00",
+                "priceType": "01",
+                "priceTypeQual": "05",
+                "priceStatus": "02",
+                "currency": "INR",
+                "price": "1550.00"
+            },
+            {
+                "salesOrg": "4601",
+                "distrChannel": "00",
+                "priceType": "01",
+                "priceTypeQual": "05",
+                "priceStatus": "02",
+                "currency": "ZAR",
+                "price": "330.00"
+            }
+        ],
+        "regionalAvailability": [
+            {
+                "vistaRegionCode": "P",
+                "region": "Brazil",
+                "vistaAvailability": {
+                    "code": "G",
+                    "descriptionShort": "unavailable",
+                    "descriptionLong": "Unavailable - out of print  "
+                },
+                "vistaAnswerCode": {
+                    "code": "OP",
+                    "legend": "Out of print",
+                    "description": "Out of print"
+                },
+                "regionalPublicationDate": null,
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "OP "
+                    },
+                    {
+                        "type": "edi",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "40"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "O",
+                "region": "LAN-Mexico",
+                "vistaAvailability": {
+                    "code": "G",
+                    "descriptionShort": "unavailable",
+                    "descriptionLong": "Unavailable - out of print  "
+                },
+                "vistaAnswerCode": {
+                    "code": "OP",
+                    "legend": "Out of print",
+                    "description": "Out of print"
+                },
+                "regionalPublicationDate": "2000-03-30T00:00:00Z",
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "OP "
+                    },
+                    {
+                        "type": "edi",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "40"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "D",
+                "region": "India",
+                "vistaAvailability": {
+                    "code": "G",
+                    "descriptionShort": "unavailable",
+                    "descriptionLong": "Unavailable - out of print  "
+                },
+                "vistaAnswerCode": {
+                    "code": "OP",
+                    "legend": "Out of print",
+                    "description": "Out of print"
+                },
+                "regionalPublicationDate": "2000-03-30T00:00:00Z",
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "OP "
+                    },
+                    {
+                        "type": "edi",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "40"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "E",
+                "region": "Asia",
+                "vistaAvailability": {
+                    "code": "G",
+                    "descriptionShort": "unavailable",
+                    "descriptionLong": "Unavailable - out of print  "
+                },
+                "vistaAnswerCode": {
+                    "code": "OP",
+                    "legend": "Out of print",
+                    "description": "Out of print"
+                },
+                "regionalPublicationDate": "2000-03-30T00:00:00Z",
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "OP "
+                    },
+                    {
+                        "type": "edi",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "40"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "R",
+                "region": "Africa",
+                "vistaAvailability": {
+                    "code": "G",
+                    "descriptionShort": "unavailable",
+                    "descriptionLong": "Unavailable - out of print  "
+                },
+                "vistaAnswerCode": {
+                    "code": "OP",
+                    "legend": "Out of print",
+                    "description": "Out of print"
+                },
+                "regionalPublicationDate": null,
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "OP "
+                    },
+                    {
+                        "type": "edi",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "40"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "I",
+                "region": "Iberia",
+                "vistaAvailability": {
+                    "code": "G",
+                    "descriptionShort": "unavailable",
+                    "descriptionLong": "Unavailable - out of print  "
+                },
+                "vistaAnswerCode": {
+                    "code": "OP",
+                    "legend": "Out of print",
+                    "description": "Out of print"
+                },
+                "regionalPublicationDate": "2000-03-30T00:00:00Z",
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "OP "
+                    },
+                    {
+                        "type": "edi",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "40"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "C",
+                "region": "Europe",
+                "vistaAvailability": {
+                    "code": "G",
+                    "descriptionShort": "unavailable",
+                    "descriptionLong": "Unavailable - out of print July 2011"
+                },
+                "vistaAnswerCode": {
+                    "code": "OP",
+                    "legend": "Out of print",
+                    "description": "Out of print"
+                },
+                "regionalPublicationDate": "2000-03-30T00:00:00Z",
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "OP "
+                    },
+                    {
+                        "type": "edi",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "40"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "N",
+                "region": "GPG US",
+                "vistaAvailability": {
+                    "code": "G",
+                    "descriptionShort": "unavailable",
+                    "descriptionLong": "Unavailable - out of print July 2011"
+                },
+                "vistaAnswerCode": {
+                    "code": "OP",
+                    "legend": "Out of print",
+                    "description": "Out of print"
+                },
+                "regionalPublicationDate": "2000-05-01T00:00:00Z",
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "OP "
+                    },
+                    {
+                        "type": "edi",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "40"
+                    }
+                ]
+            },
+            {
+                "vistaRegionCode": "A",
+                "region": "Australia",
+                "vistaAvailability": {
+                    "code": "G",
+                    "descriptionShort": "unavailable",
+                    "descriptionLong": "Unavailable - out of print  "
+                },
+                "vistaAnswerCode": {
+                    "code": "OP",
+                    "legend": "Out of print",
+                    "description": "Out of print"
+                },
+                "regionalPublicationDate": "2000-05-29T00:00:00Z",
+                "openSourceAvailability": [
+                    {
+                        "type": "bicbasic",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "bisac",
+                        "value": "OP "
+                    },
+                    {
+                        "type": "edi",
+                        "value": "OP"
+                    },
+                    {
+                        "type": "onix",
+                        "value": "40"
+                    }
+                ]
+            }
+        ],
+        "themaQualifiers": [
+            {
+                "themaQualifierTypeCode": "2",
+                "themaQualifierType": "Language qualifiers",
+                "themaCodeSequence": 1,
+                "themaQualifierCode": "2ACB",
+                "themaQualifier": "English",
+                "themaQualifierNotes": "Use with: PLACE 1* Qualifier as appropriate to give more precise detail about regional variations or dialects of English"
+            },
+            {
+                "themaQualifierTypeCode": "4",
+                "themaQualifierType": "Educational purpose qualifiers",
+                "themaCodeSequence": 1,
+                "themaQualifierCode": "4LE",
+                "themaQualifier": "For ELT / ESL learning, courses, examinations and certificates",
+                "themaQualifierNotes": "Class here: EAL, ELL, EFL. Use for: material for learners of English as a second or an additional language (EAL) or material for teaching English to speakers of other language, for material aimed at pupils or learners whose first or home language is other than English"
+            }
+        ],
+        "themaSubjects": [
+            {
+                "themaCodeSequence": 1,
+                "themaSubjectCategoryCode": "CJB",
+                "themaSubjectCategory": "Language teaching and learning material and coursework",
+                "themaSubjectCategoryNotes": null
+            }
+        ],
+        "productRanges": [],
+        "featuresBenefits": [],
+        "rights": {
+            "maxPermittedQuantity": "0",
+            "returnsPermitted": "Y",
+            "availableForNegotiatedSale": "Y",
+            "inspectionCopiesAllowed": "N",
+            "ContributorCopiesAllowed": null
+        },
+        "vistaSubjects": {
+            "subject1Code": "E",
+            "subject1": "English Language Teaching",
+            "subject2Code": "E1",
+            "subject2": "ELT - Courses",
+            "subject3Code": "E13",
+            "subject3": "ELT - Adult courses"
+        }
+    }
+]

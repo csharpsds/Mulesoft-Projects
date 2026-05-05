@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<munit:config name="health-check-test-suite.xml" />
+	<http:request-config
+		name="HTTP_Request_configuration"
+		doc:name="HTTP Request configuration"
+		doc:id="9353e02d-eb3f-4b5c-a7f6-6740ca0d7015">
+		<http:request-connection
+			host="${api.host}"
+			port="${http.private.port}" />
+	</http:request-config>
+	<munit:test
+		name="health-check-test-success-response"
+		doc:id="062e3fc5-0e77-4ff2-b77e-a595eafed538" ignore="true">
+		<munit:enable-flow-sources>
+			<munit:enable-flow-source value="api-main" />
+			<munit:enable-flow-source
+				value="get:\status:api-config" />
+		</munit:enable-flow-sources>
+		<munit:execution>
+			<http:request
+				method="GET"
+				doc:name="Request API Status"
+				doc:id="fafaa627-b396-44fb-ac2f-f58f18a6a42e"
+				config-ref="HTTP_Request_configuration"
+				path="/api/status" />
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that
+				doc:name="Assert that Payload is Not Null"
+				doc:id="5650cdac-a000-4431-a96f-029183162b34"
+				is="#[MunitTools::notNullValue()]"
+				expression="#[payload]" />
+			<munit-tools:assert-equals
+				doc:name="Assert that response status code is 200"
+				doc:id="a3505eae-0e8d-4fa6-8ae1-686cd9d38fa5"
+				actual="#[attributes.statusCode]"
+				expected="#[200]"
+				message="Health check response code should be 200." />
+		</munit:validation>
+	</munit:test>
+	<munit:test
+		name="health-check-test-404-response"
+		doc:id="be19b1f2-10da-4138-a3c1-96e705836efb"
+		description="Test"
+		expectedErrorType="APIKIT:NOT_FOUND" ignore="true">
+		<munit:execution>
+			<munit:set-event
+				doc:name="Set Event for api-main flow"
+				doc:id="f483f9d9-d5bf-45aa-adca-3265d8425730">
+				<munit:attributes
+					value="#[{
+		'headers': {
+			
+		},
+		'listenerPath': '/api/*',
+		'relativePath': '/test',
+		'version': '1.0',
+		'method': 'GET',
+		'scheme': 'HTTP',
+		'requestPath': '/api/test',
+		'requestUri': '',
+		'rawRequestPath': '/api/test',
+		'localAddress':'',
+		'remoteAddress':''
+	}
+	as Object {
+		class: &quot;org.mule.extension.http.api.HttpRequestAttributes&quot;
+	}]"
+					encoding="UTF-8"
+					mediaType="application/java" />
+
+			</munit:set-event>
+			<flow-ref
+				doc:name="Flow Reference to api-main flow"
+				doc:id="548656c5-34cb-41a1-ba95-0a9e1b00ea36"
+				name="api-main" />
+		</munit:execution>
+	</munit:test>
+	<munit:test
+		name="health-check-test-406-response"
+		doc:id="4177f93e-f38b-432c-9b8d-2ef85e4da6f6" ignore="true">
+		<munit:enable-flow-sources>
+			<munit:enable-flow-source value="api-main" />
+			<munit:enable-flow-source
+				value="get:\status:api-config" />
+		</munit:enable-flow-sources>
+		<munit:execution>
+			<munit:set-event
+				doc:name="Set Event for api-main flow"
+				doc:id="7f796e63-1e07-4113-8be5-b3592504fb7d">
+				<munit:attributes
+					value="#[{
+		'headers': {
+			'Accept': 'application/xml'
+		},
+		'listenerPath': '/api/*',
+		'relativePath': '/status',
+		'version': '1.0',
+		'method': 'GET',
+		'scheme': 'HTTP',
+		'requestPath': '/api/status',
+		'requestUri': '',
+		'rawRequestPath': '/api/status',
+		'localAddress':'',
+		'remoteAddress':''
+	}
+	as Object {
+		class: &quot;org.mule.extension.http.api.HttpRequestAttributes&quot;
+	}]"
+					encoding="UTF-8"
+					mediaType="application/java" />
+
+			</munit:set-event>
+			<try
+				doc:name="Try"
+				doc:id="45ffb3a4-a908-4a4b-920e-5e4ff3394519">
+				<flow-ref
+					doc:name="Flow Reference to api-main"
+					doc:id="913e9173-3a2f-4e83-b161-aca71d6376c6"
+					name="api-main" />
+				<error-handler>
+					<on-error-continue
+						enableNotifications="true"
+						logException="true"
+						doc:name="On Error Continue"
+						doc:id="d0dd0241-4ee8-418f-ae31-9cd1bdc80330"
+						type="APIKIT:NOT_ACCEPTABLE" />
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:verify-call
+				doc:name="Verify if 406-response transform message is called"
+				doc:id="c07ecbca-d7d0-4728-99e9-1467c5f1e97a"
+				processor="ee:transform">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute
+						whereValue="406-response"
+						attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test
+		name="health-check-test-405-response"
+		doc:id="aa2e25fd-d4c8-4a52-b0cd-3b948d8c6ee5" ignore="true">
+		<munit:execution>
+			<munit:set-event
+				doc:name="Set Event for api-main flow"
+				doc:id="43bbb3be-ca6e-4a38-bad6-9b5bf5d492e2">
+				<munit:attributes
+					value="#[{
+		'headers': {
+			
+		},
+		'listenerPath': '/api/*',
+		'relativePath': '/status',
+		'version': '1.0',
+		'method': 'POST',
+		'scheme': 'HTTP',
+		'requestPath': '/api/status',
+		'requestUri': '',
+		'rawRequestPath': '/api/status',
+		'localAddress':'',
+		'remoteAddress':''
+	}
+	as Object {
+		class: &quot;org.mule.extension.http.api.HttpRequestAttributes&quot;
+	}]"
+					encoding="UTF-8"
+					mediaType="application/java" />
+
+			</munit:set-event>
+			<try
+				doc:name="Try"
+				doc:id="b84a5a11-4fe4-4680-84d4-f606f9e93cca">
+				<flow-ref
+					doc:name="Flow Reference to api-main-flow"
+					doc:id="c5eab4f2-9f8c-459a-8f23-df5c4dbf16e1"
+					name="api-main" />
+				<error-handler>
+					<on-error-continue
+						enableNotifications="true"
+						logException="true"
+						doc:name="On Error Continue"
+						doc:id="03a810f0-0099-4e42-962a-f538e96db68b"
+						type="APIKIT:METHOD_NOT_ALLOWED" />
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:verify-call
+				doc:name="Verify if 405-response transform message is called"
+				doc:id="23d362c9-7903-4740-8989-3a99e6521cbc"
+				processor="ee:transform">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute
+						whereValue="405-response"
+						attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test
+		name="health-check-test-415-response"
+		doc:id="a45454fe-3d28-4b91-9ab2-f93947f1616c" ignore="true">
+		<munit:enable-flow-sources>
+			<munit:enable-flow-source value="api-main" />
+			<munit:enable-flow-source
+				value="get:\status:api-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior>
+			<munit-tools:mock-when
+				doc:name="Mock APIkit Router with Unsupported Media type error"
+				doc:id="fa52245f-35ba-496c-a3d3-8fb7db0507ca"
+				processor="apikit:router">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute
+						whereValue="api-config"
+						attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:error
+						typeId="APIKIT:UNSUPPORTED_MEDIA_TYPE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try
+				doc:name="Try"
+				doc:id="4bd07c03-3722-4125-b53c-edf6e1d33c47">
+				<http:request
+					method="GET"
+					doc:name="Request API status"
+					doc:id="d0545475-b316-4259-8223-3f1f07544444"
+					config-ref="HTTP_Request_configuration"
+					path="/status" />
+				<error-handler>
+					<on-error-continue
+						enableNotifications="true"
+						logException="true"
+						doc:name="On Error Continue"
+						doc:id="85a72140-629b-4d81-a82e-dbcad1baf80d"
+						type="HTTP:UNSUPPORTED_MEDIA_TYPE" />
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:verify-call
+				doc:name="Verify if 415-response transform message is called"
+				doc:id="6658f387-ea74-4c22-ad89-997682fc06e7"
+				processor="ee:transform">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute
+						whereValue="415-response"
+						attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+	<munit:test
+		name="health-check-test-400-response"
+		doc:id="dae4e708-4bae-41d9-9ef5-ac3840bded51" ignore="true">
+		<munit:enable-flow-sources>
+			<munit:enable-flow-source value="api-main" />
+			<munit:enable-flow-source
+				value="get:\status:api-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior>
+			<munit-tools:mock-when
+				doc:name="Mock APIkit Router with Bad request error"
+				doc:id="474fc160-7db0-4455-a178-79a99f7c7763"
+				processor="apikit:router">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute
+						whereValue="api-config"
+						attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:error typeId="APIKIT:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try
+				doc:name="Try"
+				doc:id="5637cced-dcdf-43d5-a50c-1421fe02b8ed">
+				<http:request
+					method="GET"
+					doc:name="Request API status"
+					doc:id="5cbcfe45-9f7a-496b-a574-be05c472dfa1"
+					config-ref="HTTP_Request_configuration"
+					path="/status" />
+				<error-handler>
+					<on-error-continue
+						enableNotifications="true"
+						logException="true"
+						doc:name="On Error Continue"
+						doc:id="58eb2877-1f83-4830-828a-42bcf2b57cd3"
+						type="HTTP:BAD_REQUEST" />
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:verify-call
+				doc:name="Verify if 400-response transform message is called"
+				doc:id="cd4c6b41-f36b-4adc-bb37-f4a856057e97"
+				processor="ee:transform">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute
+						whereValue="400-response"
+						attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="health-check-test-500-response" doc:id="022ba0d7-591a-41cc-b43e-d34793195766" ignore="true">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Response from Health Check flow" doc:id="f1031230-f09d-425e-8a57-ca1d027fce6b" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="health-check-flow-reference" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="MULE:EXPRESSION" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="dc9f0b72-d39c-4023-94cb-51c7a467840e" >
+				<flow-ref doc:name="Flow Reference to get:\status" doc:id="db57d3ed-bb4f-49a9-ba97-67109c3dac3a" name="get:\status:api-config" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="903689e5-306c-42b2-8ef9-65d60ca8a803" />
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify if default-error-response transform message is called" doc:id="56f303af-ee51-4969-8849-a529d32c94a3" processor="ee:transform">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="default-error-response" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+</mule>

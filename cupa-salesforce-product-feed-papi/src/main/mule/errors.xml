@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<error-handler
+		name="apikit-error-handler"
+		doc:id="8a228ed9-20bd-4b30-ac9a-991dc98140bc">
+		<on-error-propagate
+			enableNotifications="true"
+			logException="true"
+			doc:name="On Error Propagate"
+			doc:id="cece599d-8f28-4495-9a3d-82c5f836fe63"
+			type="APIKIT:BAD_REQUEST">
+			<set-variable
+				value="#[400]"
+				doc:name="httpStatus=400"
+				doc:id="f2dfc6f6-aa50-431c-b69d-dfe6eaf80855"
+				variableName="httpStatus" />
+			<flow-ref doc:name="set-error-payload" doc:id="75881000-55c8-48c9-8ddd-11b39039c2a4" name="set-error-payload"/>
+		</on-error-propagate>
+		<on-error-propagate
+			enableNotifications="true"
+			logException="true"
+			doc:name="On Error Propagate"
+			doc:id="a7dbe014-4b16-470e-af2c-75606109771d"
+			type="APIKIT:METHOD_NOT_ALLOWED">
+			<set-variable
+				value="#[405]"
+				doc:name="httpStatus=405"
+				doc:id="7008f607-6b1d-49c3-9e07-92e92a5bf629"
+				variableName="httpStatus" />
+			<flow-ref doc:name="set-error-payload" doc:id="dc6c917a-595e-438b-bbd9-9ec6b4e34b19" name="set-error-payload" />
+		</on-error-propagate>
+		<on-error-propagate
+			enableNotifications="true"
+			logException="true"
+			doc:name="On Error Propagate"
+			doc:id="d2fb0e9e-d939-4133-8db2-580d9b61a5ac"
+			type="APIKIT:NOT_ACCEPTABLE">
+			<set-variable
+				value="#[406]"
+				doc:name="httpStatus=406"
+				doc:id="9e7aa1cd-8eaf-4707-8b80-5b92ad4b19c3"
+				variableName="httpStatus" />
+			<flow-ref doc:name="set-error-payload" doc:id="a96ec0b5-63cc-44e1-8730-a2af9f486b67" name="set-error-payload" />
+		</on-error-propagate>
+		<on-error-propagate
+			enableNotifications="true"
+			logException="true"
+			doc:name="On Error Propagate"
+			doc:id="2de9af2f-4890-4849-85c7-f1ea52463c6b"
+			type="APIKIT:NOT_FOUND">
+			<set-variable
+				value="#[404]"
+				doc:name="httpStatus=404"
+				doc:id="91d75f0c-a961-4f3b-aeee-2e76ae1290bb"
+				variableName="httpStatus" />
+			<flow-ref doc:name="set-error-payload" doc:id="3977809e-dfbe-4e1b-a4f9-a4f6076a3b72" name="set-error-payload" />
+		</on-error-propagate>
+		<on-error-propagate
+			enableNotifications="true"
+			logException="true"
+			doc:name="On Error Propagate"
+			doc:id="a6d80f46-c28d-49dc-94cb-2513c06e8692"
+			type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+			<set-variable
+				value="#[415]"
+				doc:name="httpStatus=415"
+				doc:id="392c2bd0-acb2-4181-80ae-46bbb0924a08"
+				variableName="httpStatus" />
+			<flow-ref doc:name="set-error-payload" doc:id="2cbb13ad-f37e-4ad8-9f3b-5380eb35c030" name="set-error-payload" />
+		</on-error-propagate>
+	</error-handler>
+	<sub-flow name="set-error-payload" doc:id="55af0274-31e1-4be5-906a-dd833c29258e" >
+		<ee:transform doc:name="Transform Message" doc:id="1b45cb6f-d704-4b8e-8f16-7512528c1c75" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"eventId": if(isEmpty(vars.transactionId)) correlationId else vars.transactionId,
+	"flowName": if(isEmpty(vars.flowName)) "N/A" else vars.flowName,
+	"status": "ERROR",
+	"statusCode": vars.httpStatusCode,
+	"errorCode": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+	"errorMessage": "Error during the execution of the flow",
+	"errorDetails":  error.detailedDescription
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="send-error-report-email-flow" doc:id="0e8a413b-4a76-40ce-a09c-fc519effabe1" name="send-error-report-email-flow"/>
+		<flow-ref doc:name="common-logging-error-sub-flow" doc:id="a03791b0-23b7-425b-a0a7-afa163dd1be8" name="common-logging-error-sub-flow"/>
+		<ee:transform doc:name="Error Response" doc:id="1c38065b-41a7-46b8-87d5-fbeda1e8d05d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"error" : {
+		"code" 		: error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+		"category" 	: "Technical",
+		"flowName"	: vars.flowName default "N/A",
+		"message" 	: if (vars.errorDesc == null) error.description else vars.errorDesc as String,
+		"details"	: error.detailedDescription
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<error-handler name="global-error-handler" doc:id="2c38b438-5ebd-4fd5-839a-863d7dc5608c" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="167b6fa5-2136-4dd6-8a7f-0338bc3c402a" >
+			<ee:transform doc:name="Set Status Code" doc:id="cdd4d8fe-786f-472f-9008-ef8a0a957c6f" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/json
+---
+error.errorType.identifier match {
+	case "BAD_REQUEST" -> 400
+	case "UNAUTHORIZED" -> 401
+	case "FORBIDDEN" -> 403
+	case "NOT_FOUND" -> 404
+	case "METHOD_NOT_ALLOWED" -> 405
+	case "NOT_ACCEPTABLE" -> 406
+	case "REQUEST_TIMEOUT" -> 408
+	case "PAYLOAD_TOO_LARGE" -> 413
+	case "UNSUPPORTED_MEDIA_TYPE" -> 415
+	case "TOO_MANY_REQUESTS" -> 429
+	case "INTERNAL_SERVER_ERROR" -> 500
+	case "NOT_IMPLEMENTED" -> 501
+	case "BAD_GATEWAY" -> 502
+	case "SERVICE_UNAVAILABLE" -> 503
+	case "GATEWAY_TIMEOUT" -> 504
+	else -> 500
+
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="set-error-payload" doc:id="4c7cf131-c082-48ce-9895-da7169e8bf9b" name="set-error-payload"/>
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="get-all-data-from-source-system_Error_Handler" doc:id="5d876b66-88f4-4fb9-93f1-6c9dd5bd667d" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a87327c6-621c-4291-9541-17335d62ca54" >
+			<ee:transform doc:name="Set Status Code" doc:id="4140a38a-45ea-40d6-a577-9eebfb294a9d" >
+				<ee:message />
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/json
+---
+error.errorType.identifier match {
+	case "BAD_REQUEST" -> 400
+	case "UNAUTHORIZED" -> 401
+	case "FORBIDDEN" -> 403
+	case "NOT_FOUND" -> 404
+	case "METHOD_NOT_ALLOWED" -> 405
+	case "NOT_ACCEPTABLE" -> 406
+	case "REQUEST_TIMEOUT" -> 408
+	case "PAYLOAD_TOO_LARGE" -> 413
+	case "UNSUPPORTED_MEDIA_TYPE" -> 415
+	case "TOO_MANY_REQUESTS" -> 429
+	case "INTERNAL_SERVER_ERROR" -> 500
+	case "NOT_IMPLEMENTED" -> 501
+	case "BAD_GATEWAY" -> 502
+	case "SERVICE_UNAVAILABLE" -> 503
+	case "GATEWAY_TIMEOUT" -> 504
+	else -> 500
+
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="Set Error Payload" doc:id="78d49368-4353-44bd-a7f5-4cba5a9a3799" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"eventId": if(isEmpty(vars.transactionId)) correlationId else vars.transactionId,
+	"flowName": if(isEmpty(vars.flowName)) "N/A" else vars.flowName,
+	"status": "ERROR",
+	"statusCode": vars.httpStatusCode,
+	"errorCode": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+	"errorMessage": "Error during the execution of getting all data from the source system",
+	"errorDetails":  error.detailedDescription
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="send-error-report-email-flow" doc:id="c9c2389c-2ab5-44de-b263-c2eed0943cc4" name="send-error-report-email-flow" />
+			<ee:transform doc:name="Error Response" doc:id="4cb41834-3705-4a9e-8852-557610db7dfc" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"eventId": if(isEmpty(vars.transactionId)) correlationId else vars.transactionId,
+	"flowName": if(isEmpty(vars.flowName)) "N/A" else vars.flowName,
+	"status": "ERROR",
+	"statusCode": vars.httpStatusCode,
+	"errorCode": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+	"errorMessage": "Error during the execution of getting all data from the source system",
+	"errorDetails":  error.detailedDescription
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="product-feed-impl_Error_Handler" doc:id="062fe27f-d286-41e3-ae1b-becc7e331dd4" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1092e25a-eed0-49d2-9311-29021004d732" >
+			<ee:transform doc:name="Set Status Code" doc:id="af4bbb37-0397-42e8-8987-30064991778c" >
+				<ee:message />
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/json
+---
+error.errorType.identifier match {
+	case "BAD_REQUEST" -> 400
+	case "UNAUTHORIZED" -> 401
+	case "FORBIDDEN" -> 403
+	case "NOT_FOUND" -> 404
+	case "METHOD_NOT_ALLOWED" -> 405
+	case "NOT_ACCEPTABLE" -> 406
+	case "REQUEST_TIMEOUT" -> 408
+	case "PAYLOAD_TOO_LARGE" -> 413
+	case "UNSUPPORTED_MEDIA_TYPE" -> 415
+	case "TOO_MANY_REQUESTS" -> 429
+	case "INTERNAL_SERVER_ERROR" -> 500
+	case "NOT_IMPLEMENTED" -> 501
+	case "BAD_GATEWAY" -> 502
+	case "SERVICE_UNAVAILABLE" -> 503
+	case "GATEWAY_TIMEOUT" -> 504
+	else -> 500
+
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="Set Error Payload" doc:id="519aa1c7-6082-4d88-8072-b01d14ad2d7e" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"eventId": if(isEmpty(vars.transactionId)) correlationId else vars.transactionId,
+	"flowName": if(isEmpty(vars.flowName)) "N/A" else vars.flowName,
+	"status": "ERROR",
+	"statusCode": vars.httpStatusCode,
+	"errorCode": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+	"errorMessage": "Error during the execution of the main orchestration",
+	"errorDetails":  error.detailedDescription
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="send-error-report-email-flow" doc:id="2922193c-bd71-4511-a8b0-41e0fffe8ff3" name="send-error-report-email-flow" />
+			<ee:transform doc:name="Error Response" doc:id="843b349f-d6db-4131-bd81-4a2bacbbb648" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"eventId": if(isEmpty(vars.transactionId)) correlationId else vars.transactionId,
+	"flowName": if(isEmpty(vars.flowName)) "N/A" else vars.flowName,
+	"status": "ERROR",
+	"statusCode": vars.httpStatusCode,
+	"errorCode": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+	"errorMessage": "Error during the execution of the main orchestration",
+	"errorDetails":  error.detailedDescription
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="get-existing-isbn13-to-sf-by-batch_Error_Handler" doc:id="3d37241d-4049-4da8-8e4f-841469668d5d" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="286c498a-4f1e-46b6-9f8d-506509c21727" >
+			<ee:transform doc:name="Set Status Code" doc:id="a3ed10d7-df9b-4164-a55e-86f492b056fb" >
+				<ee:message />
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/json
+---
+error.errorType.identifier match {
+	case "BAD_REQUEST" -> 400
+	case "UNAUTHORIZED" -> 401
+	case "FORBIDDEN" -> 403
+	case "NOT_FOUND" -> 404
+	case "METHOD_NOT_ALLOWED" -> 405
+	case "NOT_ACCEPTABLE" -> 406
+	case "REQUEST_TIMEOUT" -> 408
+	case "PAYLOAD_TOO_LARGE" -> 413
+	case "UNSUPPORTED_MEDIA_TYPE" -> 415
+	case "TOO_MANY_REQUESTS" -> 429
+	case "INTERNAL_SERVER_ERROR" -> 500
+	case "NOT_IMPLEMENTED" -> 501
+	case "BAD_GATEWAY" -> 502
+	case "SERVICE_UNAVAILABLE" -> 503
+	case "GATEWAY_TIMEOUT" -> 504
+	else -> 500
+
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="Set Error Payload" doc:id="9e28697f-dbdd-4b13-ad94-e30043c765fd" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"eventId": if(isEmpty(vars.transactionId)) correlationId else vars.transactionId,
+	"flowName": if(isEmpty(vars.flowName)) "N/A" else vars.flowName,
+	"status": "ERROR",
+	"statusCode": vars.httpStatusCode,
+	"errorCode": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+	"errorMessage": "Error during the execution of the searching of data in the Salesforce",
+	"errorDetails":  error.detailedDescription
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="send-error-report-email-flow" doc:id="3deb938c-bb7f-44c5-968e-ca6325019e07" name="send-error-report-email-flow" />
+			<ee:transform doc:name="Error Response" doc:id="e9ca3a07-e0d9-4d35-9b27-2638048814b3" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"eventId": if(isEmpty(vars.transactionId)) correlationId else vars.transactionId,
+	"flowName": if(isEmpty(vars.flowName)) "N/A" else vars.flowName,
+	"status": "ERROR",
+	"statusCode": vars.httpStatusCode,
+	"errorCode": error.errorType.namespace ++ ":" ++ error.errorType.identifier,
+	"errorMessage": "Error during the execution of the searching of data in the Salesforce",
+	"errorDetails":  error.detailedDescription
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+	<flow name="send-error-report-email-flow" doc:id="bcda9d66-b320-41f1-a30a-d7c1f8c4466b" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="bfac8efd-6fc8-4182-91d2-f17d03a1908a" variableName="flowName" />
+		<ee:transform doc:name="Set SMTP Email" doc:id="41537dfb-94a4-4354-9239-804b75e94a65" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="smtp_email" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"from": Mule::p('report.tokenCheck.sender'),
+	"to": Mule::p('report.tokenCheck.recipient') splitBy ",",
+	"subject": upper(Mule::p('mule.env')) ++ " - " ++ Mule::p('report.emailSettings.subject'),
+	"body": "$(write(payload, 'application/json'))",
+	"contentType": "text/plain"
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="f3b07c5f-73a6-4237-9db9-d76edd90b2db" >
+			<try doc:name="Try" doc:id="6494fc0d-419a-4741-ac2b-33a43e7cb236" >
+				<http:request method="POST" doc:name="Post: Send Email" doc:id="21d3f5a3-84c1-429e-8a0e-2107cd3caebd" config-ref="utility-sapi_HTTP_Request_configuration" path="${utilitySapi.endpoint}" >
+					<http:body ><![CDATA[#[vars.smtp_email]]]></http:body>
+				</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="47ac331a-23de-4bec-8103-68f0f8b45b9a" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS" >
+						<logger level="INFO" doc:name="SMTP Error Logger" doc:id="797d3d03-0f7d-4d5a-8a8f-59e2e5dd6ab1" message="**********Error occurs during sending payload to SMTP Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+	</flow>
+</mule>

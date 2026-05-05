@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	
+	<flow name="api-main"
+		doc:id="527b1626-3dda-4a85-9c27-ca02e0c2b0a0">
+		<http:listener config-ref="api-http-listener-config"
+			path="${https.listener.path}">
+			<http:response
+				statusCode="#[vars.httpStatus default 200]">
+				<http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+			</http:response>
+			<http:error-response
+				statusCode="#[vars.httpStatus default 500]">
+				<http:body><![CDATA[#[payload]]]></http:body>
+				<http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Set Transaction ID"
+			doc:id="0bcc39a5-8205-4998-a7aa-9f3937329a31">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable
+					resource="dwls/set-transaction-id.dwl" variableName="transactionId" />
+				<ee:set-variable variableName="startTimeStamp" ><![CDATA[%dw 2.0
+output application/json
+---
+now()]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<apikit:router config-ref="api-config" />
+		<error-handler ref="apikit-error-handler" />
+	</flow>
+	<flow name="get:\status:api-config"
+		doc:id="ce2d4059-853a-4782-ae75-8ba8f08cf00a">
+		<flow-ref doc:name="health-check-flow-reference"
+			doc:id="b9c93db0-1df4-40ef-a877-360f0065f13c"
+			name="health-check-flow" />
+	</flow>
+	<flow name="cupa-salesforce-product-feed-scheduler" doc:id="72cfde3a-1ce1-4b7c-9a7f-503255852efb" maxConcurrency="1">
+		<scheduler doc:name="Scheduler" doc:id="753d4f50-1c5a-43f3-8c27-138608fa0f6b" >
+			<scheduling-strategy >
+				<cron expression="${cron.expression}" timeZone="${cron.timeZone}"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="Set Transaction ID" doc:id="eed0806f-fbf5-43f7-985a-fdba5c266230" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="transactionId" ><![CDATA[%dw 2.0
+output application/java
+---
+correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="startTimeStamp" ><![CDATA[%dw 2.0
+output application/json
+---
+now()]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="product-feed-impl-sub-flow" doc:id="82015b72-2823-4a34-bd2f-5c96cd1f53dd" name="product-feed-impl-sub-flow"/>
+	</flow>
+	<flow name="get:\product-feed:api-config" doc:id="1d862980-816e-44c4-82a6-9471f3ec1d58" maxConcurrency="1">
+		<set-variable value='#["GET"]' doc:name="Set Variable" doc:id="ef36d514-b658-4bfc-9f29-d2c724cb255d" variableName="methodIdentifier"/>
+		<flow-ref doc:name="product-feed-impl-sub-flow" doc:id="285a3f70-1395-41ae-997f-a151577a5e73" name="product-feed-impl-sub-flow" />
+	</flow>
+	<flow name="post:\product-feed:application\json:api-config" doc:id="246ac534-9989-44c0-ac95-0b079868119a" >
+		<set-variable value='#["POST"]' doc:name="Set Variable" doc:id="420c223b-e990-4731-99fb-b9dc50998fb0" variableName="methodIdentifier" />
+		<flow-ref doc:name="product-feed-impl-sub-flow" doc:id="2ba822c6-733a-4e15-aac7-abb931ac159a" name="product-feed-impl-sub-flow" />
+	</flow>
+	<flow name="post:\product-feed\evaluate:application\json:api-config" doc:id="5fe9a021-d7ea-4988-a487-cc236c257aa5" >
+		<set-variable value='#["EVALUATE"]' doc:name="Set Variable" doc:id="3d9821fe-84d5-4de8-ab69-cd573de340d8" variableName="methodIdentifier" />
+		<flow-ref doc:name="product-feed-impl-sub-flow" doc:id="7dfdebf8-a64b-4b30-8693-f07d01aea9ad" name="product-feed-impl-sub-flow" />
+	</flow>
+	<flow name="post:\product-feed\attributes:application\json:api-config" doc:id="4494ed4b-a5a6-4945-8695-acb8a1d6b555" >
+		<ee:transform doc:name="Transform Message" doc:id="8108bad6-7639-4948-a1ac-4c0a592f9168" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{//parameterize table name
+    "queryString": "select p2.isbn_13_c, p2.id from ${schema.salesforce}.product_2 p2 where p2.isbn_13_c like '978%' limit :limit offset :offset",
+    "bindValues": {
+    	"limit": (payload.limit as Number) default 10,
+    	"offset": (payload.offset as Number) default 0
+    }
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="attributesPayload" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+				<ee:set-variable variableName="flagEndpoint" ><![CDATA["attributes endpoint"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="sys-post-query-cupa-carta-sapi-flow" doc:id="cef8ba44-66a5-49f8-9b87-8f30561eebe4" name="sys-post-query-cupa-carta-sapi-flow" target="allProducts"/>
+		<ee:transform doc:name="Transform Message" doc:id="c076a314-07a8-4865-adbd-4d92eb7546fd" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="isbn13ListExist" ><![CDATA[%dw 2.0
+output application/json
+---
+vars.allProducts map (item, index) -> {
+	"ISBN_13__c": item.'isbn_13_c',
+	"Id": item.id,
+	"type": "Product2"
+}]]></ee:set-variable>
+				<ee:set-variable variableName="attributesValue" ><![CDATA[%dw 2.0
+output application/json
+var sourceObject = read(Mule::p('category'), "application/json") as Object
+---
+(((vars.attributesPayload.attributes reduce ((field, acc = {}) ->
+    acc ++ {
+        (field): sourceObject[field] default ""
+    }
+) pluck $) distinctBy $) map $ as String) joinBy ","]]></ee:set-variable>
+				<ee:set-variable variableName="reportVars" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"TotalProductChanges": 0
+			
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Report Variable" doc:id="a18f206d-88c2-40db-a643-36765e4c4b2d">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="reportVars"><![CDATA[%dw 2.0
+output application/json
+---
+vars.reportVars ++ {
+	"TotalProductChangesWithout555": 0,
+	"TotalProductToUpdate": sizeOf(vars.isbn13ListExist default [])
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="update-main-sub-flow" doc:id="64455b36-2951-4d45-899b-4084b3986308" name="update-main-sub-flow"/>
+		<flow-ref doc:name="report-generator-sub-flow" doc:id="c36548b7-5393-467a-822c-e23dfd06540c" name="report-generator-sub-flow"/>
+		<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="53c4c4d4-7912-4fa3-9ac1-4ca18f85fa51" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+vars.isbn13ListExist&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform> [STUDIO] -->
+		<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="6d26ef10-644a-43db-9066-1c98dc040975" >
+			<ee:message >
+				<ee:set-attributes ><![CDATA[%dw 2.0
+output application/json
+var query = "SELECT id, ISBN_13__c from Product2 where ISBN_13__c in ('"
+var endQuery = "')"
+var isbn13 = payload joinBy "','"
+&#45;&#45;-
+"queryParams":{
+	"query": query ++ isbn13 ++ endQuery
+}&#93;&#93;></ee:set-attributes>
+			</ee:message>
+		</ee:transform> [STUDIO] -->
+	</flow>
+	
+</mule>

@@ -1,0 +1,1958 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+	<sub-flow name="report-generator-sub-flow" doc:id="588193af-6cdc-485c-aa86-8e0219d0abfd" >
+		<choice doc:name="Choice" doc:id="5d432d4e-947c-4543-bb24-5c9f3ced1429">
+				<when expression='#[vars.methodIdentifier == "EVALUATE"]'>
+					<ee:transform doc:name="Evaluation Report Payload" doc:id="6d0f45f5-4f92-4e3c-8683-b3953b6d781d">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(vars.evaluateCreatePayload default []) ++ (vars.evaluateUpdatePayload default [])
+//{
+//	"create": vars.evaluateCreatePayload,
+//	"update": vars.evaluateCreatePayload
+//}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+				</when>
+				<otherwise>
+					<logger level="INFO" doc:name="Preparing for report generation" doc:id="6a2bbea7-e079-4ae4-b159-e9d818d0a606" message="************ Preparing for report generation **************" />
+					<ee:transform doc:name="Initial Report Payload" doc:id="fd0052fb-73c6-46b2-9982-c8450cbb389c">
+						<ee:message>
+						</ee:message>
+						<ee:variables>
+							<ee:set-variable variableName="initialReportPayload"><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Create": vars.generateCreateReport,
+	"Update": vars.generateUpdateReport
+}]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<remove-variable doc:name="Remove generateCreateReport" doc:id="710c5473-96d8-44c4-a087-9aa6673f6f81" variableName="generateCreateReport" />
+					<remove-variable doc:name="Remove generateUpdateReport" doc:id="9796c594-c3d7-43b1-ad9a-0732955a60dc" variableName="generateUpdateReport" />
+					<os:retrieve-all doc:name="Retrieve all" doc:id="98c9b079-f032-42f1-8060-944ffe4878de" objectStore="recordsWithoutFilter_Object_store" />
+					<ee:transform doc:name="Report Payload" doc:id="b61af566-04cd-4835-8111-a98543fbabbe">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Arrays
+import lines from dw::core::Strings
+import remove from dw::core::Strings
+output application/json
+var report = vars.initialReportPayload
+---
+{
+	"reportPayload": {
+		"eventId": vars.transactionId,
+		"Timestamp": now(),
+		"TotalSuccessCreated": (report.Create.TotalSuccessRecord as Number) default 0,
+		"TotalSuccessUpdated": (report.Update.TotalSuccessRecord as Number) default 0,
+		"TotalFailedCreated" : (report.Create.TotalFailedRecord as Number) default 0,
+		"TotalFailedUpdated" : (report.Update.TotalFailedRecord as Number) default 0,
+		"FailedData": {
+			"created": report.Create.ErrorsDuringBatchProcess default [],
+			"updated": report.Update.ErrorsDuringBatchProcess default []
+		}
+		
+	},
+	"reportAttachment":{
+		
+		"eventId": vars.transactionId,
+		"Timestamp": now(),
+		"NumericReport": {
+			"StartTimestamp": vars.startTimeStamp,
+			"EndTimestamp": now(),
+			"ProcessDuration": ((((now() - (vars.startTimeStamp as DateTime) ) as Number)/60) as String {format: "#0.00"}) ++ " " ++  "Minutes",
+			"TotalProductChanges": report.Update.TotalProductChanges default 0,
+			"TotalProductChangesWithout555": report.Update.TotalProductChangesWithout555 default 0,
+			"TotalPreFilterCount": ((report.Create.TotalPreFilterCount as Number) default 0) + ((report.Update.TotalPreFilterCount as Number) default 0),
+			"TotalPostFilterCount": ((report.Create.TotalPostFilterCount as Number) default 0) + ((report.Update.TotalPostFilterCount as Number) default 0),
+			"TotalProductSendToSalesforce": ((report.Create.TotalSuccessRecord as Number) default 0) + ((report.Update.TotalSuccessRecord as Number) default 0) + ((report.Create.TotalFailedRecord as Number) default 0) + (report.Update.TotalFailedRecord as Number) default 0,
+			"Successful-Report": {
+					"Create-Record-Report":{
+							"TotalPostFilterCountToCreate": (report.Create.TotalPostFilterCount as Number) default 0,
+						    "TotalProductCreatedToSalesforce": (report.Create.TotalSuccessRecord as Number) default 0,
+						    "TotalProductFailedToCreateInSalesforce": (report.Create.TotalFailedRecord as Number) default 0,
+						    "ErrorsDuringBatchProcessCreate": report.Create.ErrorsDuringBatchProcess
+				    	},
+				    "Update-Record-Report":{
+				    		"TotalPostFilterCountToUpdate": (report.Update.TotalPostFilterCount as Number) default 0,
+				    		"TotalProductSuccessfullyUpdatedToSalesforce": (report.Update.TotalSuccessRecord as Number) default 0,
+				    		"TotalProductFailedToUpdateInSalesforce": (report.Update.TotalFailedRecord as Number) default 0,
+						    "ErrorsDuringBatchProcessUpdate": report.Update.ErrorsDuringBatchProcess
+				        }
+			},
+			"Failed-Report":{
+				"Create-Failed-Record-Report":{
+					"TotalFailedToCreateRecordsDuringPreFilterCount": sizeOf(payload.failedCreateRecord remove "\"" splitBy  ",") default 0,
+					"TotalFailedToCreateRecordsBeforeSendingToSalesforceCount": sizeOf(payload.failedCreateRecordAfterFilter remove "\"" splitBy  ",") default 0,
+				},
+				"Update-Failed-Record-Report":{
+					"TotalFailedToUpdateRecordsDuringPreFilterCount": sizeOf(payload.failedUpdateRecord remove "\"" splitBy  ",") default 0,
+					"TotalFailedToUpdateRecordsBeforeSendingToSalesforceCount": sizeOf(payload.failedUpdateRecordAfterFilter remove "\"" splitBy  ",") default 0
+				}
+			}
+		},
+		"FailedDataReport":{
+			
+				"FailedToCreateRecordsDuringPreFilterList": (payload.failedCreateRecord remove "\"") default "No failed Records",
+				"FailedToCreateRecordsBeforeSendingToSalesforceList": (payload.failedCreateRecordAfterFilter remove "\"") default "No failed Records",
+				("ISBN13ToCreateInSalesforce": (payload.errorInsertToSalesforce remove "\"")) if(payload.errorInsertToSalesforce != null),
+				"FailedToUpdateRecordsDuringPreFilterList": (payload.failedUpdateRecord remove "\"") default "No failed Records",
+				"FailedToUpdateRecordsBeforeSendingToSalesforceList": (payload.failedUpdateRecordAfterFilter remove "\"") default "No failed Records"
+		
+		}
+	}
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+					<flow-ref doc:name="Generate Report" doc:id="3d33b93e-995c-40ab-96cb-42870e109ef1" name="send-email-flow" />
+					<os:clear doc:name="Clear" doc:id="e1ea1026-e2c3-4850-a4d8-3bc3abe4bfaa" objectStore="recordsWithoutFilter_Object_store" />
+					<logger level="INFO" doc:name="Report Generated Successfully" doc:id="c2a499ea-f4a8-4ae8-9a8a-e116abec1e2d" message="************ Report Generated Successfully **************" />
+					<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="1a8b3757-b74e-4faf-a450-a4bc42c2e847" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+	"create": vars.reportCreate,
+	"update": vars.reportUpdate
+}&#93;&#93;></ee:set-payload>
+				</ee:message>
+			</ee:transform> [STUDIO] -->
+				</otherwise>
+			</choice>
+	</sub-flow>
+	<sub-flow name="product-feed-impl-sub-flow" doc:id="25977c91-7ac7-4ba2-968e-7ca1685dc212" >
+		<try doc:name="Try" doc:id="1e674e02-960a-4418-9082-ea711fa2f19c" >
+			<set-variable value='#["product-feed-impl-sub-flow"]' doc:name="Flow Name" doc:id="7408faf1-981b-4f0e-be1e-c41b7bdbddd6" variableName="flowName"/>
+			<choice doc:name="Choice" doc:id="2ae732ca-0b27-48a4-9413-f1ac1dbf4764">
+			<when expression='#[vars.methodIdentifier == "POST"]'>
+				<ee:transform doc:name="Reprocessed ISBN13" doc:id="59818dac-90a9-4a1b-8272-51401c541510">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.isbn13]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+					<async doc:name="Async" doc:id="7d76eb09-ace1-40ab-a536-56209499a0cd" >
+						<flow-ref doc:name="product-feed-main-orchestration-sub-flow" doc:id="fd1146b8-c5b4-496e-bf81-3139d6545f2d" name="product-feed-main-orchestration-sub-flow"/>
+					</async>
+					<ee:transform doc:name="Status Payload" doc:id="29cf64d8-8da3-4a1a-a353-8ed4ac44d6e5" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"event-id": if(isEmpty(vars.transactionId)) correlationId else vars.transactionId,
+	"status-code": vars.httpStatus default "200",
+	"timestamp": now(),
+	"status" : "Manual process is on going"
+
+}
+]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="postCreate" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<!-- [STUDIO:"product-feed-main-orchestration-sub-flow"]<flow-ref doc:name="product-feed-main-orchestration-sub-flow" doc:id="5d4c3553-9bd5-4cc8-966a-e2b2d7c3cd22" name="product-feed-main-orchestration-sub-flow" /> [STUDIO] -->
+			</when>
+			<when expression='#[vars.methodIdentifier == "EVALUATE"]'>
+					<set-variable value="#[attributes.queryParams]" doc:name="Set qParams" doc:id="b4e91b0e-523a-43ff-8e1e-590b7fe2e38a" variableName="qParams"/>
+					<ee:transform doc:name="Evaluate ISBN13" doc:id="f62b3fa8-09ce-400a-96d5-093513fb2c81" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.isbn13]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<flow-ref doc:name="product-feed-main-orchestration-sub-flow" doc:id="bb8bdaca-8100-4a0d-8859-b6a54516e054" name="product-feed-main-orchestration-sub-flow" />
+				</when>
+				<otherwise>
+				<scatter-gather doc:name="Scatter-Gather" doc:id="baeaec0c-d687-4456-a161-71e91d41a226">
+			<route>
+				<ee:transform doc:name="createdFrom" doc:id="b1c3d34c-d5bd-427c-b1e1-7acb1d5b2ecd">
+					<ee:message>
+						<ee:set-attributes><![CDATA[%dw 2.0
+output application/json
+---
+"queryParams":{
+	"createdFrom": if(attributes.queryParams.setDate != null)
+							attributes.queryParams.setDate
+						else
+							((now() as LocalDateTime >> "Asia/Manila")-(Mule::p('extract.dynamicPeriod') as Period)) as String {format: "yyyy-MM-dd"}
+}]]></ee:set-attributes>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="request-cupa-product-papi-product-changes-sub-flow" doc:id="8df80293-9611-4715-84b3-283423086536" name="request-cupa-product-papi-product-changes-created-flow" target="createdISBN" />
+						<logger level="INFO" doc:name="Logger" doc:id="933be47b-92ae-44bd-8967-694f3dd094fb" message="********** Fetch ISBN13 from Product Changes Created From ************" />
+			</route>
+			<route>
+				<ee:transform doc:name="updatedFrom" doc:id="7c6f685f-d382-437f-93e7-3ebd84f76311">
+					<ee:message>
+						<ee:set-attributes><![CDATA[%dw 2.0
+output application/json
+---
+"queryParams":{
+	"updatedFrom": if(attributes.queryParams.setDate != null)
+							attributes.queryParams.setDate
+						else
+							((now() as LocalDateTime >> "Asia/Manila")-(Mule::p('extract.dynamicPeriod') as Period)) as String {format: "yyyy-MM-dd"}
+}]]></ee:set-attributes>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="request-cupa-product-papi-product-changes-sub-flow" doc:id="02dcdfa8-9db2-4a3b-8ad8-377b500bacf9" name="request-cupa-product-papi-product-changes-updated-flow" target="updatedISBN" />
+						<logger level="INFO" doc:name="Logger" doc:id="a7bd2e26-d978-4355-8351-443a7ffb6c43" message="********** Fetch ISBN13 from Product Changes Updated From ************" />
+			</route>
+						<route >
+							<ee:transform doc:name="updatedFrom Product Sizes" doc:id="166397fb-c368-453b-b8ab-860c2f83707d" >
+								<ee:message >
+									<ee:set-attributes ><![CDATA[%dw 2.0
+output application/json
+---
+"queryParams":{
+	"updatedFromProductSizes": if(attributes.queryParams.setDate != null)
+							attributes.queryParams.setDate
+						else
+							((now() as LocalDateTime >> "Asia/Manila")-(Mule::p('extract.dynamicPeriod') as Period)) as String {format: "yyyy-MM-dd"}
+}]]></ee:set-attributes>
+								</ee:message>
+							</ee:transform>
+							<flow-ref doc:name="request-cupa-core-sap-replica-sapi-product-size-changes-created-flow" doc:id="f225ebf8-7f91-49e8-b879-62dce1873c3f" name="request-cupa-core-sap-replica-sapi-product-size-changes-created-flow" target="updatedProductSizesISBN"/>
+							<logger level="INFO" doc:name="Logger" doc:id="80c4adbd-c5aa-4b8a-9573-d185a8d25cc3" message="********** Fetch ISBN13 from Product Size Changes Updated From ************"/>
+						</route>
+		
+</scatter-gather>
+					<flow-ref doc:name="product-feed-main-orchestration-sub-flow" doc:id="17e0ef6b-fbe1-45a8-985e-f0bdcf2e2420" name="product-feed-main-orchestration-sub-flow"/>
+					<ee:transform doc:name="Status Payload" doc:id="6c765925-84d7-4a37-a12b-3c5a32345c83">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"event-id": if(isEmpty(vars.transactionId)) correlationId else vars.transactionId,
+	"timestamp": now(),
+	"status-code": vars.httpStatus default "200",
+	"status" : (if(vars.methodIdentifier == "GET")
+					"Ongoing Product data processing"
+				else
+					"Scheduled product data processing is now ongoing!")	
+}
+]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="postCreate"><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+			</otherwise>
+		</choice>
+			<!-- [STUDIO:"Testing Payload"]<ee:transform doc:name="Testing Payload" doc:id="104e54a6-ccaa-41bb-8052-b74fc1c53231" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var isbn13List = ["9781316130711",
+        "9781316130735",
+        "9781316131312",
+        "9781316131350",
+        "9781316131749",
+        "9781316131756",
+        "9781316131770",
+        "9781316131800",
+        "9781316131824",
+        "9781316132401",
+        "9781316132449",
+        "9781316132838",
+        "9781316132845",
+        "9781316132869",
+        "9781316132890",
+        "9781316132913",
+        "9781316133491",
+        "9781316133538",
+        "9781316133927",
+        "9781316133934",
+        "9781316133958",
+        "9781316133989",
+        "9781316134009",
+        "9781316134481",
+        "9781316134498",
+        "9781316137727",
+        "9781316140260",
+        "9781316141960",
+        "9781316142929",
+        "9781316143735",
+        "9781316143742",
+        "9781316143759",
+        "9781316143766",
+        "9781316143773",
+        "9781316143780",
+        "9781316143797",
+        "9781316143803",
+        "9781316143810",
+        "9781316143827",
+        "9781316143834",
+        "9781316143841",
+        "9781316144121",
+        "9781316144138",
+        "9781316144145",
+        "9781316144152",
+        "9781316144169",
+        "9781316144176",
+        "9781316144183",
+        "9781316144190",
+        "9781316144206",
+        "9781316144213",
+        "9781316144220",
+        "9781316144237",
+        "9781316144244",
+        "9781316144251",
+        "9781316144268",
+        "9781316144275",
+        "9781316144282",
+        "9781316144299",
+        "9781316144305",
+        "9781316144978",
+        "9781316145142",
+        "9781316145159",
+        "9781316151112",
+        "9781316151129",
+        "9781316151136",
+        "9781316151143",
+        "9781316151150",
+        "9781316151167",
+        "9781316151174",
+        "9781316152799",
+        "9781316153000",
+        "9781316153192",
+        "9781316153307",
+        "9781316153352",
+        "9781316153499",
+        "9781316153604",
+        "9781316153741",
+        "9781316153857",
+        "9781316154007",
+        "9781316154106",
+        "9781316154250",
+        "9781316154359",
+        "9781316154496",
+        "9781316154601",
+        "9781316155974",
+        "9781316156575",
+        "9781316156896",
+        "9781316156940",
+        "9781316156995",
+        "9781316157046",
+        "9781316157091",
+        "9781316157145",
+        "9781316157190",
+        "9781316157244",
+        "9781316157299",
+        "9781316157343",
+        "9781316157398",
+        "9781316157442",
+        "9781316157497",
+        "9781316157558",
+        "9781316157985",
+        "9781316158777",
+        "9781316159798",
+        "9781316159811",
+        "9781316159873",
+        "9781316159880",
+        "9781316160206",
+        "9781316160305"&#93;
+&#45;&#45;-
+{
+	"isbn13": isbn13List,
+	"total": sizeOf(isbn13List)
+}&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform> [STUDIO] -->
+			<logger level="INFO" doc:name="Logger" doc:id="523af6a8-939a-47f5-9b1e-ebb413924a35" message="*********** End of product-feed-impl-sub-flow ***********" />
+			<error-handler ref="product-feed-impl_Error_Handler" />
+		</try>
+	</sub-flow>
+	<sub-flow name="product-feed-main-orchestration-sub-flow" doc:id="a03c9f2e-1788-4744-bc29-81822e6a18bf" >
+		<try doc:name="Try" doc:id="cb0b7d8d-aef5-4536-8e7c-bad32599d2f8" >
+			<ee:transform doc:name="Filter out 555* ISBN13" doc:id="137370cf-cef1-4708-9d17-57578877e30a">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="isbnList"><![CDATA[%dw 2.0 
+import first from dw::core::Strings 
+output application/json 
+var payload01 = if(vars.methodIdentifier == "POST" or vars.methodIdentifier == "EVALUATE")
+					payload default []
+				else
+					((vars.createdISBN.isbn13 default [] ++ vars.updatedISBN.isbn13 default [] ++ vars.updatedProductSizesISBN.isbn13 default [] ) distinctBy $) default []
+---
+payload01 filter !($ first 3 contains ("555")) and (sizeOf($)==13)]]></ee:set-variable>
+					<ee:set-variable variableName="reportVars" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"TotalProductChanges": if(vars.methodIdentifier == "POST" or vars.methodIdentifier == "EVALUATE")
+					sizeOf(payload default [])
+					else
+					(sizeOf(vars.createdISBN.isbn13 default []) + sizeOf(vars.updatedISBN.isbn13 default []) + sizeOf(vars.updatedProductSizesISBN.isbn13 default []))
+			
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+			<logger level="INFO" doc:name="Remove 555 ISBN13 in the List" doc:id="7497e953-ce6f-4b8f-85e9-d17cb3851b8a" message="************* Remove 555* ISBN13 from the list *************" />
+			<flow-ref doc:name="get-existing-isbn13-to-sf-by-batch" doc:id="c5b984b8-e73b-4478-afb0-c6386cf2297d" name="get-existing-isbn13-to-sf-by-batch" target="isbn13ListExist" targetValue="#[payload default []]" />
+			<ee:transform doc:name="Report Variable" doc:id="bd0face0-f30e-4efe-bc11-b48f5d9251af">
+				<ee:message />
+				<ee:variables>
+					<ee:set-variable variableName="reportVars"><![CDATA[%dw 2.0
+output application/json
+---
+vars.reportVars ++ {
+	"TotalProductChangesWithout555": sizeOf(vars.isbnList default []),
+	"TotalProductToUpdate": sizeOf(vars.isbn13ListExist default [])
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<remove-variable doc:name="Remove createdISBN" doc:id="cad79c78-268e-46e3-a885-df9aa6da76ab" variableName="createdISBN" />
+			<remove-variable doc:name="Remove UpdatedISBN" doc:id="bfd711bb-17a1-4863-ba4c-50062c316354" variableName="updatedISBN" />
+			<remove-variable doc:name="Remove updatedProductSizesISBN" doc:id="86b37bb6-0a06-47a9-9198-933162afcdb7" variableName="updatedProductSizesISBN"/>
+			<logger level="INFO" doc:name="Logger" doc:id="122762cb-b574-49aa-aafe-ccf9e49c870d" message="************ Get existing ISBN13 from Salesforce *************" />
+			<os:clear doc:name="Clear" doc:id="6b313b51-b5c2-461a-8afc-af69bf6cfb2f" objectStore="recordsWithoutFilter_Object_store" />
+			<scatter-gather doc:name="Scatter-Gather" doc:id="36513329-25c8-4172-8fc0-fe339ce598c7">
+			<route>
+				<flow-ref doc:name="create-main-sub-flow" doc:id="13cd182d-5f04-49b4-b70e-72ab74e44daa" name="create-main-sub-flow"/>
+			</route>
+				<route >
+					<flow-ref doc:name="update-main-sub-flow" doc:id="963b004d-bba8-4d71-bd86-b11fc38e2b98" name="update-main-sub-flow"/>
+				</route>
+		</scatter-gather>
+			<flow-ref doc:name="report-generator-sub-flow" doc:id="b362ce70-b712-4983-9802-f34cac8031ff" name="report-generator-sub-flow" />
+			<error-handler ref="product-feed-impl_Error_Handler" />
+		</try>
+	</sub-flow>
+	<sub-flow name="create-main-sub-flow" doc:id="9ddac95c-0e22-4db5-9611-3ff9afec0861" >
+		<ee:transform doc:name="CREATE" doc:id="8d414073-9bc6-4451-8713-7d830d6b62ca">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(vars.isbnList default [] -- (vars.isbn13ListExist.*'ISBN_13__c' default [])) map (item,index) -> {
+	"isbn13": item
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="flag"><![CDATA["CREATE"]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+		<ee:transform doc:name="Report Variable + TotalProductToCreate" doc:id="eb4fbf50-3151-4f5a-aa53-55e72b4ca64c">
+				<ee:message />
+				<ee:variables>
+					<ee:set-variable variableName="reportVars"><![CDATA[%dw 2.0
+output application/json
+---
+vars.reportVars ++ {
+	"TotalProductToCreate": sizeOf(payload default [])
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		<remove-variable doc:name="Remove isbnList" doc:id="d43459aa-7688-4b30-8550-30daa98239d9" variableName="isbnList" />
+		<flow-ref doc:name="get-all-data-from-source-system-sub-flow" doc:id="5b49ae6c-358d-42f2-9149-94cfb096875e" name="get-all-data-from-source-system-sub-flow" />
+		<ee:transform doc:name="Report Variable + initReportVar" doc:id="39126cd7-8b3d-4a4a-a3db-248a3cd452ff">
+						<ee:message />
+						<ee:variables>
+							<ee:set-variable variableName="reportVars"><![CDATA[%dw 2.0
+output application/json
+---
+vars.reportVars ++ vars.initReportVar]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+		<choice doc:name="CREATE: Evaluate or Product Feed?" doc:id="43cf6d9f-a75b-49f2-bda5-5dee5babb39d">
+						<when expression='#[vars.methodIdentifier == "EVALUATE"]'>
+							<ee:transform doc:name="Evaluate Payload" doc:id="d3dea506-dda5-4e17-b698-738f967802c0">
+								<ee:message>
+								</ee:message>
+								<ee:variables>
+									<ee:set-variable variableName="evaluateCreatePayload"><![CDATA[%dw 2.0
+//@StreamCapable()
+//input payload application/json
+output application/json //deferred=true
+---
+payload]]></ee:set-variable>
+								</ee:variables>
+							</ee:transform>
+						</when>
+						<otherwise>
+							<flow-ref doc:name="get-all-data-from-source-system-after-filter-sub-flow" doc:id="4694ade6-951c-43bf-bd12-10b15d500bab" name="get-all-data-from-source-system-after-filter-sub-flow" target="reportCreate" />
+							<ee:transform doc:name="Generate Create Report" doc:id="3fbae23f-3b29-4eb3-986d-40c7b1b08445">
+						<ee:message />
+						<ee:variables>
+									<ee:set-variable variableName="generateCreateReport"><![CDATA[%dw 2.0
+output application/json
+---
+vars.reportVars ++ vars.reportCreate]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+							<remove-variable doc:name="Remove reportVars" doc:id="a6406684-ba9c-4755-8afb-155df6485e6f" variableName="reportVars" />
+							<remove-variable doc:name="Remove reportCreate" doc:id="17390ba6-0b26-46e1-a5a1-483fe268cd9b" variableName="reportCreate" />
+						</otherwise>
+					</choice>
+	</sub-flow>
+	<sub-flow name="update-main-sub-flow" doc:id="299b6ece-a4d1-4829-94cd-a47cfb30b714" >
+		<ee:transform doc:name="UPDATE" doc:id="544a937a-1000-421b-8d90-d7cfa20fb9ca">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.isbn13ListExist default [] map (item, index) -> {
+	"isbn13": item.'ISBN_13__c',
+	"Id": item.Id,
+	"type": item.'type'
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="flag"><![CDATA["UPDATE"]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+		<remove-variable doc:name="Remove isbn13ListExist" doc:id="69ab579c-500a-4803-9bfa-0aeb711b07c5" variableName="isbn13ListExist" />
+		<flow-ref doc:name="get-all-data-from-source-system-sub-flow" doc:id="f210e680-2b9d-422d-82de-06e8ca526581" name="get-all-data-from-source-system-sub-flow" />
+		<ee:transform doc:name="Report Variable + initReportVar" doc:id="8033d7f4-e47d-41c9-912f-c86050a597ac">
+						<ee:message />
+						<ee:variables>
+							<ee:set-variable variableName="reportVars"><![CDATA[%dw 2.0
+output application/json
+---
+vars.reportVars ++ vars.initReportVar]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+		<choice doc:name="UPDATE: Evaluate or Product Feed?" doc:id="6d69109f-a776-42f7-af57-410c9d0c65d2">
+						<when expression='#[vars.methodIdentifier == "EVALUATE"]'>
+							<ee:transform doc:name="Evaluate Payload" doc:id="bf4ed69b-76fc-41cd-ab44-a5b82c986bb9">
+								<ee:message>
+								</ee:message>
+								<ee:variables>
+									<ee:set-variable variableName="evaluateUpdatePayload"><![CDATA[%dw 2.0
+//@StreamCapable()
+//input payload application/json
+output application/json //deferred=true
+---
+payload]]></ee:set-variable>
+								</ee:variables>
+							</ee:transform>
+						</when>
+						<otherwise>
+							<flow-ref doc:name="get-all-data-from-source-system-after-filter-sub-flow" doc:id="00f3d4c2-971c-47aa-85d5-bcfcd7b24f97" name="get-all-data-from-source-system-after-filter-sub-flow" target="reportUpdate" />
+							<ee:transform doc:name="Generate Update Report" doc:id="7508404a-6130-4123-8962-88f0d974e1e4">
+						<ee:message>
+						</ee:message>
+								<ee:variables>
+									<ee:set-variable variableName="generateUpdateReport"><![CDATA[%dw 2.0
+output application/json
+---
+vars.reportVars ++ vars.reportUpdate]]></ee:set-variable>
+								</ee:variables>
+					</ee:transform>
+							<remove-variable doc:name="Remove reportVars" doc:id="3df9bc9f-dc2c-489b-9096-3a981a0cd088" variableName="reportVars" />
+							<remove-variable doc:name="Remove reportUpdate" doc:id="fb9380ff-1367-4d91-95db-3be679025164" variableName="reportUpdate" />
+						</otherwise>
+					</choice>
+	</sub-flow>
+	<sub-flow name="get-existing-isbn13-to-sf-by-batch" doc:id="c2130a16-8e36-40d5-8219-1785a9149009">
+		<try doc:name="Try" doc:id="6c85df42-3ffc-4a97-9884-a718ce17939e">
+			<set-variable value="#[[]]" doc:name="Set Variable" doc:id="989e7236-f12d-412b-890f-bfdc083e0e1a" variableName="isbn13Container" />
+			<foreach doc:name="For Each" doc:id="72ae0f45-15cd-4bb3-9c07-a4743b9e5778" collection="#[vars.isbnList]" batchSize="${search.existing.batchSize}">
+			<try doc:name="Try" doc:id="69e677db-86dd-4c74-9013-a64721445375">
+				<ee:transform doc:name="Set QueryParams" doc:id="b9b5a99e-a502-4d15-bfb8-4a80bfdd0f25">
+			<ee:message>
+				<ee:set-attributes><![CDATA[%dw 2.0
+output application/json
+var query = "SELECT id, ISBN_13__c from Product2 where ISBN_13__c in ('"
+var endQuery = "')"
+var isbn13 = payload joinBy "','"
+---
+"queryParams":{
+	"query": query ++ isbn13 ++ endQuery
+}]]></ee:set-attributes>
+			</ee:message>
+			<ee:variables>
+			</ee:variables>
+		</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="b28909a3-f91b-40d1-8566-ecd65ed3a1ad" message="******** Set Query parameters for Salesforce executeQuery endpoint ********" />
+				<flow-ref doc:name="Salesforce - /executeQuery" doc:id="5b0a9567-7d17-4cf3-9189-918fbcccf815" name="get-execute-query-flow" target="sfdcISBN13List" />
+				<logger level="INFO" doc:name="Logger" doc:id="6b2e0080-6f1a-4e84-a811-9e387be429b9" message="********* Bulk Search *********" />
+				<ee:transform doc:name="Transform Message" doc:id="98aec150-6008-47a4-b330-1f9e0b7a18c8">
+				<ee:message>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="isbn13Container"><![CDATA[%dw 2.0
+output application/json
+---
+vars.isbn13Container  ++ vars.sfdcISBN13List]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+				<set-variable value='#[%dw 2.0 &#10;import * from dw::Runtime&#10;output application/json&#10;---&#10;"Sleep" wait 10]' doc:name="Set Variable" doc:id="a70c5f1f-1739-4e8e-8cb4-ed6b79a059da" variableName="varSleep" />
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e858889b-b062-4578-b2b6-ee467614e419">
+						<logger level="INFO" doc:name="Logger" doc:id="4e8a0ae9-eb07-4569-aaed-fb9038ab384c" message="*************** Continue Iteration **********************" />
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</foreach>
+			<set-payload value="#[vars.isbn13Container]" doc:name="Set Payload" doc:id="5bd95225-f42c-4495-9196-38bce35942a2" />
+			<remove-variable doc:name="Remove isbn13Container" doc:id="280df758-ed95-4498-86bf-8d467d645b7c" variableName="isbn13Container"/>
+			<error-handler ref="get-existing-isbn13-to-sf-by-batch_Error_Handler" />
+		</try>
+	</sub-flow>
+	<sub-flow name="get-all-data-from-source-system-sub-flow" doc:id="a63ef91b-c6d0-4c98-a0f7-8553b9fd24a8" >
+		<try doc:name="Try" doc:id="43e5edd4-d9c5-4417-9af9-78b63c8d2bae" >
+			<!-- [STUDIO:"Flow Name"]<set-variable value='#["get-all-data-from-source-system-sub-flow"&#93;' doc:name="Flow Name" doc:id="045d9b9b-adca-4ea4-95f3-0bd76556f756" variableName="flowName"/> [STUDIO] -->
+			<!-- [STUDIO:"Initialize Empty Array (isbn13Container)"]<set-variable value="#[[&#93;&#93;" doc:name="Initialize Empty Array (isbn13Container)" doc:id="bf88f80e-20cd-435e-a49f-e6bc152e6e56" variableName="isbn13Container"/> [STUDIO] -->
+			<ee:transform doc:name="Initialize Variables" doc:id="ff2b8c8f-2d23-4c90-8159-1bd1d6f31f75" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="isbn13Container" ><![CDATA[%dw 2.0
+output application/json
+---
+[]]]></ee:set-variable>
+					<ee:set-variable variableName="flowName" ><![CDATA["get-all-data-from-source-system-sub-flow"]]></ee:set-variable>
+					<ee:set-variable variableName="initReportVar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"TotalPreFilterCount": 0,
+	"TotalPostFilterCount": 0,
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<foreach doc:name="For Each" doc:id="2e719966-400d-4d59-a12c-f9c95a438792" collection="payload" batchSize="200">
+				<parallel-foreach doc:name="Parallel For Each" doc:id="e506269b-8d90-4e54-bd45-dfd48a9309f2" collection="#[payload]" target="secondFilterPayload" maxConcurrency="3">
+			<try doc:name="Try" doc:id="26cea085-57bd-4939-825e-3ee9bbb3d90d">
+				<set-variable value="#[payload]" doc:name="Set Variable" doc:id="cef5734a-308c-41f0-8c0c-2bc22da35b7c" variableName="payload_item" />
+				<scatter-gather doc:name="Scatter-Gather" doc:id="ac3598b8-d096-4df9-9d21-44b3570243cd">
+					<route>
+						<set-variable value='#["productMain"]' doc:name="Product Main" doc:id="b309025e-9270-4241-9c7c-77dca645dd05" variableName="cartaPath" />
+						<flow-ref doc:name="cupa-carta-sapi-sub-flow" doc:id="c20f3f47-8034-4e19-b679-09ce06157dfa" name="cupa-carta-sapi-sub-flow" target="productMainVar" />
+					</route>
+					<route>
+						<set-variable value='#["productInternal"]' doc:name="Product Internal" doc:id="b3ffa0b4-8857-4cb5-86c9-8773a46ba85d" variableName="cartaPath" />
+						<flow-ref doc:name="cupa-carta-sapi-sub-flow" doc:id="6e0d0236-2061-4178-b2c9-abc6df50d0d4" name="cupa-carta-sapi-sub-flow" target="productInternalVar" />
+					</route>
+					<route>
+						<flow-ref doc:name="Global Publication" doc:id="3599e9a5-36b3-4b0f-be70-865ef9b1c4ea" name="request-cupa-pubsys-sapi-global-pub-status-flow" target="globalPubVar" />
+					</route>
+					<route>
+						<flow-ref doc:name="Regional Availability" doc:id="75ff3ec5-b158-466c-954c-2cce5602e49b" name="cupa-odh-sapi-regional-availability-sub-flow" target="regionalAvailabilityVar" />
+					</route>
+				</scatter-gather>
+						<choice doc:name="Choice" doc:id="a70f9db1-ca1c-4b14-a335-7aa04682fe15" >
+							<when expression='#[vars.methodIdentifier == "EVALUATE"]'>
+								<ee:transform doc:name="Accepts all product data" doc:id="4c7dac58-76be-4735-91be-95adff0bf330" >
+									<ee:message >
+										<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"recordToFilter": payload ++ (vars.payload_item ++ 
+		{"main":vars.productMainVar[0]} ++
+		{"internal":vars.productInternalVar[0]} ++
+		{"globalPublication": vars.globalPubVar[0]} ++
+		{"regionalAvailability": vars.regionalAvailabilityVar[0]})
+}]]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+							</when>
+							<otherwise >
+								<choice doc:name="Choice" doc:id="c753c608-2b80-420f-82fe-00b14447cda0">
+					<when expression="#[(vars.productMainVar == null or vars.productMainVar == []) and&#10;(vars.productInternalVar == null or vars.productInternalVar == []) and&#10;(vars.globalPubVar == null or vars.globalPubVar == []) and&#10;(vars.regionalAvailabilityVar == null or vars.regionalAvailabilityVar == [])]">
+						<raise-error doc:name="PRODUCT:NO_PRODUCT_DATA_FOUND" doc:id="1917fa94-271e-4b98-a81e-4835ac02722d" type="PRODUCT:NO_PRODUCT_DATA_FOUND" description="No product data found from the source system" />
+					</when>
+					<otherwise>
+						<ee:transform doc:name="Accepts No Null fields" doc:id="7d22e37f-05a9-4f81-9317-ab645dc5eb9a">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"recordToFilter": payload ++ (vars.payload_item ++ 
+		{"main":vars.productMainVar[0]} ++
+		{"internal":vars.productInternalVar[0]} ++
+		{"globalPublication": vars.globalPubVar[0]} ++
+		{"regionalAvailability": vars.regionalAvailabilityVar[0]})
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+					</otherwise>
+				</choice>
+							</otherwise>
+						</choice>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ef7637d6-93af-4cf5-8bc1-787a3326c46c">
+						<logger level="INFO" doc:name="Error on Second Layer Filtering" doc:id="94fd9d0b-19fa-4e83-a307-3e6739fe31d2" message="*********** Error on 2nd layer filtering**************" />
+						<set-variable value="#[vars.payload_item.isbn13 as String]" doc:name="Set Variable" doc:id="664bc1f1-0f9a-4f16-ba85-668fc237295a" variableName="isbn13" mimeType="application/json" />
+						<os:retrieve doc:id="18fc60f0-b774-4e52-8b01-51ddd1b76eef" key='#[if(vars.flag == "CREATE") "failedCreateRecord" else "failedUpdateRecord"]' objectStore="recordsWithoutFilter_Object_store" doc:name="Retrieve">
+							<os:default-value><![CDATA[#[""]]]></os:default-value>
+						</os:retrieve>
+						<choice doc:name="Choice" doc:id="a69ddc28-8176-45c1-957e-fa145331046b">
+							<when expression="#[isEmpty(payload)]">
+								<ee:transform doc:name="Transform Message" doc:id="d895b9b2-15d8-430e-b554-974771c390a3">
+									<ee:message>
+										<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.isbn13]]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+								<os:store doc:id="e7196e83-7ab8-406a-8dca-df85d0d00127" key='#[if(vars.flag == "CREATE") "failedCreateRecord" else "failedUpdateRecord"]' objectStore="recordsWithoutFilter_Object_store" doc:name="Store" />
+							</when>
+							<otherwise>
+								<os:store doc:id="70956a42-a687-470f-a4be-856159a69074" key='#[if(vars.flag == "CREATE") "failedCreateRecord" else "failedUpdateRecord"]' objectStore="recordsWithoutFilter_Object_store" doc:name="Store">
+									<os:value><![CDATA[#[(payload as String) ++ "," ++ vars.isbn13 as String]]]></os:value>
+								</os:store>
+							</otherwise>
+						</choice>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</parallel-foreach>
+				<ee:transform doc:name="Aggregated Payload To Apply Filter" doc:id="3e13285f-cdf6-4218-9d64-674c4e4bec6e">
+			<ee:message>
+			</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="aggregatedPayload" ><![CDATA[%dw 2.0
+//@StreamCapable()
+//input payload application/json
+output application/json //deferred=true
+---
+vars.secondFilterPayload.payload.*recordToFilter map(item, index) -> 
+{
+	"isbn13": item.isbn13,
+	("Id": item.Id) if(item.Id != null),
+	("type": item.'type') if(item.'type' != null),
+	"main": item.main,
+	"internal": item.internal,
+	"globalPub": item.globalPublication,
+	"regAvail": item.regionalAvailability
+}]]></ee:set-variable>
+					</ee:variables>
+		</ee:transform>
+				<logger level="INFO" doc:name="Aggregating the Payload" doc:id="3839efd4-e400-4bf6-904a-e46b0ef9c18e" message="*************** Aggregating the payload **************"/>
+				<logger level="INFO" doc:name="Initialize Payload to apply rules " doc:id="49346af8-887c-4461-95c2-95fb322883d9" message="*************** Initialize Payload to apply rules ******************" />
+				<ee:transform doc:name="Second layer Filter" doc:id="8601fe2d-0ff9-4a5d-a2e4-758843fa1f75">
+			<ee:message>
+			</ee:message>
+					<ee:variables>
+				<ee:set-variable variableName="secondFilterPayload"><![CDATA[%dw 2.0
+import first from dw::core::Strings
+import * from dw::core::Arrays
+output application/json
+var initialNum = 0
+--- 
+vars.aggregatedPayload filter (
+	(
+	((Mule::p('include.imprintCode') splitBy "," contains ($.internal.productInternal.imprintCode first 1)) 
+    and
+    (not (Mule::p('excluded.formats') splitBy "," contains ($.main.productMain.cambridgeFormat.code)))
+    and
+    (
+        (//English Filters
+            (
+                ($.internal.productInternal.imprintCode first 1) == "3" 
+                or
+                ($.internal.productInternal.imprintCode first 1) == "4"
+            )
+            and
+            ($.globalPub.ext.dataReleaseFlag == "Y")
+        )
+        or
+        (//Academic Filters
+            (
+                ($.internal.productInternal.imprintCode first 1) == "1" 
+                or
+                ($.internal.productInternal.imprintCode first 1) == "2"
+            )
+        )
+
+    )
+    and $.internal.productInternal.masterProfitCentreCode != "6002"
+) or $.main.productMain.cambridgeFormat.code == "RE"
+
+) and $.main.productMain.cambridgeFormat.code != null
+
+)]]></ee:set-variable>
+					</ee:variables>
+		</ee:transform>
+				<logger level="INFO" doc:name="Filter is completed" doc:id="e253da06-ca01-499b-8f55-91e25fc599ad" message="*************** Filter is completed. Generating records that passed by the rules. ******************"/>
+				<ee:transform doc:name="ISBN13 to Process After Filter" doc:id="58f75d3e-c2cb-4617-9946-91d5228a9231">
+			<ee:message>
+			</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="afterFilterPayload" ><![CDATA[%dw 2.0
+output application/json
+---
+(vars.secondFilterPayload map(item, index) -> 
+{
+	"isbn13": item.isbn13,
+	("Id": item.Id) if(item.Id != null),
+	("type": item.'type') if(item.'type' != null)
+}) default []
+]]></ee:set-variable>
+					</ee:variables>
+		</ee:transform>
+				<choice doc:name="Choice" doc:id="67834041-0b4b-48ba-aa2a-e80f1d729984" >
+					<when expression='#[vars.methodIdentifier == "EVALUATE"]'>
+						<ee:transform doc:name="isbn13Container with Filtering Fields" doc:id="7ee47a6a-c40d-4d5f-9ed1-bbee0f129757" >
+							<ee:message >
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="isbn13Container" ><![CDATA[%dw 2.0
+output application/json
+var successData = vars.secondFilterPayload default [] map(item, index) -> 
+		{
+			"isbn13": item.isbn13,
+			"rule-evaluation": true,
+			"pre-filter-payload": {
+				"format": item.main.productMain.cambridgeFormat.code,
+				"imprint_code": item.internal.productInternal.imprintCode,
+				"dataReleaseFlag": item.globalPub.ext.dataReleaseFlag,
+				"masterProfitCentreCode": item.internal.productInternal.masterProfitCentreCode,
+				"regionalAvailability": item.regAvail.regionalAvailability map (regionalAvail, ctr) -> {
+					"vistaRegionCode": regionalAvail.vistaRegionCode,
+					"vistaAnswerCode": regionalAvail.vistaAnswerCode.code,
+					"vistaAvailCode": regionalAvail.vistaAvailability.code,
+					"vistaAvailDescriptionShort": regionalAvail.vistaAvailability.descriptionShort
+				}
+				
+			}
+		} default [] 
+var failedData = ((vars.aggregatedPayload default []) -- (vars.secondFilterPayload default []))  map(item, index) -> 
+		{
+			"isbn13": item.isbn13,
+			"rule-evaluation": false,
+			"pre-filter-payload": {
+				"format": item.main.productMain.cambridgeFormat.code,
+				"imprint_code": item.internal.productInternal.imprintCode,
+				"dataReleaseFlag": item.globalPub.ext.dataReleaseFlag,
+				"masterProfitCentreCode": item.internal.productInternal.masterProfitCentreCode,
+				"regionalAvailability": item.regAvail.regionalAvailability map (regionalAvail, ctr) -> {
+					"vistaRegionCode": regionalAvail.vistaRegionCode,
+					"vistaAnswerCode": regionalAvail.vistaAnswerCode.code,
+					"vistaAvailCode": regionalAvail.vistaAvailability.code,
+					"vistaAvailDescriptionShort": regionalAvail.vistaAvailability.descriptionShort
+				}
+				
+			} 
+			
+		} default []
+
+var combinedData = successData ++ failedData
+var isPassed = if(vars.qParams.passed == "true")
+					successData
+				else if(vars.qParams.passed == "false")
+					failedData
+				else
+					combinedData
+---
+vars.isbn13Container ++ isPassed]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="isbn13Container" doc:id="a54dcb49-2148-4722-8e28-c3f259002134">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="isbn13Container"><![CDATA[%dw 2.0
+output application/json
+---
+vars.isbn13Container << vars.afterFilterPayload default []]]></ee:set-variable>
+								<ee:set-variable variableName="initReportVar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"TotalPreFilterCount": (vars.initReportVar.TotalPreFilterCount as Number) + sizeOf(vars.aggregatedPayload.isbn13 default []),
+	"TotalPostFilterCount": (vars.initReportVar.TotalPostFilterCount as Number) + sizeOf(vars.afterFilterPayload.isbn13 default []),
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+					</otherwise>
+				</choice>
+			</foreach>
+			<logger level="INFO" doc:name="Logger" doc:id="510fcf0f-9f5c-4500-8071-8f582c9e6391" message="************* After second phase filtering *************" />
+			<ee:transform doc:name="Payload" doc:id="7e8587fb-b3df-46f4-8768-9da6e764991e" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+//@StreamCapable()
+//input payload application/json
+output application/json //deferred=true
+---
+flatten(vars.isbn13Container)]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<remove-variable doc:name="Remove isbn13Container" doc:id="f3314571-6482-4038-897a-f74e7cb75153" variableName="isbn13Container"/>
+			<error-handler ref="get-all-data-from-source-system_Error_Handler" />
+		</try>
+	</sub-flow>
+	<sub-flow name="get-all-data-from-source-system-after-filter-sub-flow" doc:id="812fb9c2-274f-4ca4-b347-aa8279a5091c" >
+		<!-- [STUDIO:"Initialize Empty Array (successBatchSF)"]<set-variable value="#[[&#93;&#93;" doc:name="Initialize Empty Array (successBatchSF)" doc:id="d8a1764e-43ee-4397-bc20-76c3b97b6a88" variableName="successBatchSF"/> [STUDIO] -->
+		<ee:transform doc:name="Initialize salesforceReportVar Object" doc:id="49fa7a98-bd45-48d9-b5a0-c880a9a75cf4" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="salesforceReportVar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"TotalSuccessRecord": 0,
+	"TotalFailedRecord": 0,	
+	"ErrorsDuringBatchProcess": []
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="4eca729d-8a8b-45cd-ab4d-bb67a9e89076" batchSize="50" collection="#[payload]">
+			<try doc:name="Try" doc:id="70607d90-ea59-4b5d-a2cd-9975a372a3a5" >
+				<set-variable value="#[[]]" doc:name="Initialize Empty Array" doc:id="87a4e64a-8d59-49e4-a2ce-3ee579df806d" variableName="successContainer" />
+				<foreach doc:name="For Each" doc:id="c53d447f-f5e5-4e94-a19e-7d6374d8bc2b" collection="#[payload]">
+			<try doc:name="Try" doc:id="adb11ef8-ee46-4964-89b6-79a894735a29">
+				<set-variable value="#[payload]" doc:name="Set Variable" doc:id="90d323fb-3149-4dea-909f-9a159312ce88" variableName="payload_item" />
+				<scatter-gather doc:name="Scatter-Gather" doc:id="2a67d6e3-8404-44d0-8318-fc34bf47f4f6">
+					<route>
+								<flow-ref doc:name="Contributions" doc:id="bc5c352e-2a8e-48dc-a06d-b51d9d2f4f64" name='#[%dw 2.0&#10;output application/json&#10;---&#10;if(vars.flagEndpoint == "attributes endpoint") (if(vars.attributesValue contains("contributions"))&#10;"request-cupa-carta-sapi-contributions-flow"&#10;else&#10;"skipping-logger-sub-flow")&#10;else "request-cupa-carta-sapi-contributions-flow"]' target="contributions" />
+					</route>
+					<route>
+								<flow-ref doc:name="v2-product" doc:id="7b421d67-f860-45e2-b0a2-c652c8f784ec" name='#[%dw 2.0&#10;output application/json&#10;---&#10;if(vars.flagEndpoint == "attributes endpoint") (if(vars.attributesValue contains("product"))&#10;"request-cupa-product-papi-product-v2-flow"&#10;else&#10;"skipping-logger-sub-flow")&#10;else "request-cupa-product-papi-product-v2-flow"]' target="productV2" />
+					</route>
+					<route>
+
+								<flow-ref doc:name="Market Restrictions" doc:id="eb7e8ea8-398c-4cf6-9a68-a70d07722803" name='#[%dw 2.0&#10;output application/json&#10;---&#10;if(vars.flagEndpoint == "attributes endpoint") (if(vars.attributesValue contains("marketRestrictions"))&#10;"request-cupa-pubsys-sapi-market-restriction-flow"&#10;else&#10;"skipping-logger-sub-flow")&#10;else "request-cupa-pubsys-sapi-market-restriction-flow"]' target="marketRestrictions" />
+					</route>
+					<route>
+								<flow-ref doc:name="Global Publication" doc:id="b35d114d-4c78-4bfb-b4b4-3fe951843ec4" name='#[%dw 2.0&#10;output application/json&#10;---&#10;if(vars.flagEndpoint == "attributes endpoint") (if(vars.attributesValue contains("globalPublications"))&#10;"request-cupa-pubsys-sapi-global-pub-status-flow"&#10;else&#10;"skipping-logger-sub-flow")&#10;else "request-cupa-pubsys-sapi-global-pub-status-flow"]' target="globalPub" />
+					</route>
+					<route>
+								<flow-ref doc:name="Sales Status" doc:id="6558de85-5240-416d-98d6-04254a6b9a01" name='#[%dw 2.0&#10;output application/json&#10;---&#10;if(vars.flagEndpoint == "attributes endpoint") (if(vars.attributesValue contains("salesStatus"))&#10;"core-sap-replica-sales-status-sub-flow"&#10;else&#10;"skipping-logger-sub-flow")&#10;else "core-sap-replica-sales-status-sub-flow"]' target="salesStatus" />
+					</route>
+					<route>
+								<flow-ref doc:name="Cambridge Core" doc:id="6b30749c-fae4-475e-a108-51f924f713cd" name='#[%dw 2.0&#10;output application/json&#10;---&#10;if(vars.flagEndpoint == "attributes endpoint") (if(vars.attributesValue contains("cambridgeCore"))&#10;"post-odh-query-endpoint-cambridgeCore-flow"&#10;else&#10;"skipping-logger-sub-flow")&#10;else "post-odh-query-endpoint-cambridgeCore-flow"]' target="cambridgeCore" />
+					</route>
+							<route >
+								<flow-ref doc:name="Datashop First Sent Date" doc:id="3cd0a889-bd2b-4e0b-b98b-76e259bd5b91" name='#[%dw 2.0&#10;output application/json&#10;---&#10;if(vars.flagEndpoint == "attributes endpoint") (if(vars.attributesValue contains("dataReleaseActualDate"))&#10;"post-odh-query-endpoint-datashop-fsd-flow"&#10;else&#10;"skipping-logger-sub-flow")&#10;else "post-odh-query-endpoint-datashop-fsd-flow"]' target="datashop"/>
+							</route>
+							<route >
+								<flow-ref doc:name="Ecommerce Categories" doc:id="f67f5e69-4820-4866-ab05-9b868d92ce6b" name='#[%dw 2.0&#10;output application/json&#10;---&#10;if(vars.flagEndpoint == "attributes endpoint") (if(vars.attributesValue contains("gratisFlag"))&#10;"get-cupa-pubsys-sapi-ecommerce-categories-flow"&#10;else&#10;"skipping-logger-sub-flow")&#10;else "get-cupa-pubsys-sapi-ecommerce-categories-flow"]' target="ecommerceCategories"/>
+							</route>
+							<route >
+								<flow-ref doc:name="Technology Platform" doc:id="256aa129-a1ba-45d0-9ae2-de1d69d19f81" name='#[%dw 2.0&#10;output application/json&#10;---&#10;if(vars.flagEndpoint == "attributes endpoint") (if(vars.attributesValue contains("techPlatform"))&#10;"get-cupa-pubsys-sapi-technology-platform-flow"&#10;else&#10;"skipping-logger-sub-flow")&#10;else "get-cupa-pubsys-sapi-technology-platform-flow"]' target="techPlatform"/>
+							</route>
+							<route >
+								<flow-ref doc:name="Carta - editor" doc:id="0cf8fe68-ea29-4f28-ad33-67d3f47c0871" name='#[%dw 2.0&#10;output application/json&#10;---&#10;if(vars.flagEndpoint == "attributes endpoint") (if(vars.attributesValue contains("cartaEditor"))&#10;"post-cupa-carta-sapi-flow"&#10;else&#10;"skipping-logger-sub-flow")&#10;else "post-cupa-carta-sapi-flow"]' target="cartaEditor"/>
+							</route>
+							<route >
+								<flow-ref doc:name="ODH - marketing_controller" doc:id="64561d4c-12c1-49bb-a126-cec01dd829d6" name='#[%dw 2.0&#10;output application/json&#10;---&#10;if(vars.flagEndpoint == "attributes endpoint") (if(vars.attributesValue contains("odhMarketingController"))&#10;"post-cupa-odh-sapi-flow"&#10;else&#10;"skipping-logger-sub-flow")&#10;else "post-cupa-odh-sapi-flow"]' target="odhMarketingController"/>
+							</route>
+				</scatter-gather>
+				<ee:transform doc:name="Append Payload to successContainer" doc:id="8f0c0713-8129-4abb-ab4e-a328954af078">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="successContainer"><![CDATA[%dw 2.0
+//@StreamCapable()
+//input payload application/json
+output application/json //deferred=true
+
+---
+vars.successContainer << (vars.payload_item ++ 
+	{("product":vars.productV2[0]) if(vars.productV2[0] != null)} ++
+	{("contributions":vars.contributions[0].contributions) if(vars.contributions[0] != null)} ++
+	{("marketRestrictions":vars.marketRestrictions[0].marketRestrictionsText) if(vars.marketRestrictions[0].marketRestrictionsText != null)}++
+	{("globalPublications":vars.globalPub[0]) if(vars.globalPub[0] != null)} ++
+	{("salesStatus":vars.salesStatus[0].salesStatuses) if(vars.salesStatus[0].salesStatuses != null)} ++
+	{("cambridgeCore": vars.cambridgeCore[0]) if(vars.cambridgeCore[0] != null)} ++
+	{("dataReleaseActualDate": vars.datashop[0]) if(vars.datashop[0] != null)} ++
+	{("gratisFlag": vars.ecommerceCategories[0].gratisPolicy) if(vars.ecommerceCategories[0].gratisPolicy != null)} 
+	++
+	{("techPlatform" : vars.techPlatform[0].technologyPlatforms) if(vars.techPlatform[0].technologyPlatforms != null)} 
+	++ {("cartaEditor": vars.cartaEditor[0]) if(vars.cartaEditor[0] != null)}
+	++ {("odhMarketingController": vars.odhMarketingController[0]) if(vars.odhMarketingController[0] != null)}
+	)
+	
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<error-handler>
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="be1a7f15-c019-40aa-83ed-0e69b2806d4c">
+						<set-variable value="#[vars.payload_item.isbn13 as String]" doc:name="Set Variable" doc:id="63a39ac1-8e64-4717-90d8-687ef7d2c6ef" variableName="isbn13" mimeType="application/json" />
+						<os:retrieve doc:name="Retrieve" doc:id="4c9d12b6-46f1-4491-b58c-6ffaa8dc2633" key='#[if(vars.flag == "CREATE") "failedCreateRecordAfterFilter" else "failedUpdateRecordAfterFilter"]' objectStore="recordsWithoutFilter_Object_store">
+							<os:default-value><![CDATA[#[""]]]></os:default-value>
+						</os:retrieve>
+						<choice doc:name="Choice" doc:id="50b24d48-d4e5-4669-9281-c402e8eeac6c">
+							<when expression='#[isEmpty(payload) or payload == ""]'>
+								<ee:transform doc:name="Transform Message" doc:id="6d091112-8f2a-44b7-bda9-4241bdabb74e">
+									<ee:message>
+										<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.isbn13]]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+								<os:store doc:name="Initial Store" doc:id="c90d3a1f-c310-434c-b264-5b4929f0e04a" key='#[if(vars.flag == "CREATE") "failedCreateRecordAfterFilter" else "failedUpdateRecordAfterFilter"]' objectStore="recordsWithoutFilter_Object_store" />
+							</when>
+							<otherwise>
+								<os:store doc:name="Store" doc:id="d92ba317-191e-44dd-a0d9-8c1f9ecbfb88" key='#[if(vars.flag == "CREATE") "failedCreateRecordAfterFilter" else "failedUpdateRecordAfterFilter"]' objectStore="recordsWithoutFilter_Object_store">
+									<os:value><![CDATA[#[(payload as String) ++ "," ++ vars.isbn13 as String]]]></os:value>
+								</os:store>
+							</otherwise>
+						</choice>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</foreach>
+				<ee:transform doc:name="Paylaod to Transform into SF Payload" doc:id="c05d5436-b473-4aa8-8a76-24a2b8af10c2">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+//@StreamCapable()
+//input payload application/json
+output application/json //deferred=true
+---
+vars.successContainer]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<remove-variable doc:name="Remove successContainer" doc:id="6f7cd52a-a6d7-4210-b7ac-573d0460fa4f" variableName="successContainer"/>
+				<choice doc:name="Choice" doc:id="91545e89-9941-4912-94d7-d9e174ec706f" >
+					<when expression='#[vars.flagEndpoint == "attributes endpoint"]'>
+						<ee:transform doc:name="Generate Record to send to Salesforce" doc:id="e54f8f63-eae4-4233-9ca4-b07564802256" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+//@StreamCapable()
+//input payload application/json
+import first from dw::core::Strings
+import withMaxSize from dw::core::Strings
+output application/json //deferred=true
+var attriPayload = vars.attributesPayload.attributes ++ ["Id", "ISBN_13__c"]
+fun digitalPhyiscal(str) = str match{
+	case "P" -> "Printed"
+	case "D" -> "Online"
+	else -> null
+}
+//salesStatusCode
+fun salesStatusFunc(code, ssArray) = do{
+    var check= ssArray filter ($.salesOrg == code) map ($.code ++ ": " ++ ($.description default "")) joinBy  "" withMaxSize 80
+    ---
+    if(isEmpty(check)) null else check
+}
+//availabilityCode
+fun availabilityFunc(code, availArray) = do{
+	var check= availArray filter ($.vistaRegionCode == code) map ($.vistaAvailability.code ++ ": " ++ ($.vistaAvailability.descriptionLong default "")) joinBy  "" withMaxSize 255
+    ---
+    if(isEmpty(check)) null else check
+}
+
+//answerCode
+fun answerFunc(code, ansArray) = do{
+	var check= ansArray filter ($.vistaRegionCode == code) map ($.vistaAnswerCode.code ++ ": " ++ ($.vistaAnswerCode.legend default "")) joinBy  "" withMaxSize 100
+    ---
+    if(isEmpty(check)) null else check
+}
+
+//regionalPublicationDate
+fun regionalDateFunc(code, regDArray) = do{
+	var check= regDArray filter ($.vistaRegionCode == code) map $.regionalPublicationDate joinBy  ""
+    ---
+    if(isEmpty(check)) null else check
+}
+
+fun changeBoolean(str) = str match{
+	case "N" -> false
+	case "Y" -> true
+	else -> false
+}
+---
+payload default [] map ((item, index) -> do {
+	var objectHolder = {
+		("Id" : item.Id) if(item.Id != null),
+   "ISBN_13__c": item.isbn13,
+    "ProductCode": item.isbn13 ,
+    "Name": item.product.productInternal.imprintCode first 1 match{
+    	case academic if(academic == "1" or academic == "2") ->  trim (item.product.bookHierarchy.masterTitle) default null
+    	case eduAndEng if(eduAndEng == "3" or eduAndEng == "4") -> 	item.product.productMain.bibliographicTitle default null
+    	else -> trim (item.product.bookHierarchy.masterTitle) default null
+    } withMaxSize 255,
+    "Product_Title__c": item.product.productInternal.imprintCode first 1 match{
+    	case academic if(academic == "1" or academic == "2") ->  trim (item.product.bookHierarchy.masterTitle) default null
+    	case eduAndEng if(eduAndEng == "3" or eduAndEng == "4") -> 	item.product.productMain.bibliographicTitle default null
+    	else -> trim (item.product.bookHierarchy.masterTitle) default null
+    } withMaxSize 80,
+    "gratis_allowed__c": changeBoolean(item.gratisFlag),
+    "Subtitle__c":  item.product.productInternal.imprintCode first 1 match{
+    	case academic if(academic == "1" or academic == "2") ->  trim (item.product.bookHierarchy.masterSubtitle) default null
+    	else -> null},
+    "Technology_Platform_Information__c": (item.techPlatform map (item) -> item.legend) joinBy "/",
+    "Family_Title__c": item.product.bookHierarchy.familyTitle default null,
+    "Product_Type__c": if(item.product.productMain.digitalPhysical != null) digitalPhyiscal(item.product.productMain.digitalPhysical) else null,
+    "Format_Code__c": item.product.productMain.cambridgeFormat.code default null,
+    "Format_Description__c": item.product.productMain.cambridgeFormat.description withMaxSize 255 default null,
+    "Profit_Centre_Code__c": item.product.productInternal.masterProfitCentreCode as Number default null,
+    "Profit_Centre__c": item.product.productInternal.masterProfitCentre default null,
+    "Division_Code__c": item.product.productInternal.masterDivisionCode as Number default null,
+    "Division_Legend__c": item.product.productInternal.masterDivision default null,
+    "SAP_Issue_ID__c": item.product.bookHierarchy.sapIdLevel3 default null,
+    "SAP_Master_ID__c": item.product.bookHierarchy.sapIdLevel2 default null,
+    "SAP_Family_ID__c": item.product.bookHierarchy.sapIdLevel1 default null,
+    "ISSN__c": item.product.productMain.'e-issn' default null,
+    "P_ISSN__c": item.product.productMain.'p-issn' default null,
+    "Previous_Edition_ISBN__c": item.product.relatedProducts filter($.relationTypeCode == "03") map $.relatedIsbn13 joinBy "" default null, //relatedisbn
+    "CBO_ISBN__c": item.product.productMain.eReviewISBN default null,
+    "Division_Subject_Code__c": item.product.productInternal.divisionalSubjectCode default null,
+	"Divisional_Subject_Description__c": item.product.productInternal.divisionalSubject default null,
+	"Edition_Name__c": item.product.editionVolumePart.familyEditionStatement default null,
+	"Edition_No__c": item.product.editionVolumePart.masterEditionNumber as Number default null,
+	"Volume_Numebr__c": item.product.editionVolumePart.masterVolumeNumber as String default null,
+	"Volume_Title__c": item.product.editionVolumePart.masterVolumeName default null withMaxSize 80,
+	"Part_Number__c": item.product.editionVolumePart.masterPartNumber as String default null,
+	"Part_Title__c": item.product.editionVolumePart.masterPartTitle default null withMaxSize 100,
+	"Series_Code__c": item.product.productInternal.seriesCode default null,
+	"Series_Description__c": item.product.productInternal.series default null,
+	"Short_Title__c": item.product.productMain.titleShort default null,
+	"Open_Access_Flag__c": if(item.product.openAccess.oaFlag == "Y") true else false,
+	"Publisher_Name__c": if(item.product.productMain.publishers != [] or item.product.productMain.publishers != null) (item.product.productMain.publishers map $.description joinBy "/" withMaxSize 255 default null) else null, //to confirm
+	"Publisher_Site_Code__c": item.product.productInternal.vistaProfitCentreCode default null,
+	"Publisher_Site__c": item.product.productInternal.vistaProfitCentre default null,
+	"Asset_Url__c": if(item.product.assets != []) item.product.assets filter ($.assetType contains  "Large Size Cover") map $.assetUrl joinBy  "" withMaxSize 255 else null,
+	"Blurb150__c": if(item.product.productBlurbs != []) item.product.productBlurbs filter ($.blurbType contains  "Blurb 150") map $.blurbText joinBy  "" withMaxSize 32768 else null,
+	"issueBlurb__c": if(item.product.productBlurbs != []) item.product.productBlurbs filter ($.blurbType contains  "Blurb Issue Level") map $.blurbText joinBy  "" withMaxSize 32768 else null,
+	"Inspection_Permitted__c": item.product.rights.inspectionCopiesAllowed match{
+		case "Y" -> true
+		case "N" -> false
+		else -> false
+	},
+	"Esamples_Permitted__c": if(item.product.productMain.cambridgeFormat.code == "RE") true else false,
+	"RecordTypeId": Mule::p('controlled.product'),
+	"IsActive": true,
+	//"Hierarchy_Level__c": item default "Issue",
+	"Higher_Subject_Code__c": item.product.vistaSubjects.subject1Code default null,
+	"Higher_Subject_Code_Description__c": item.product.vistaSubjects.subject1 default null,
+	"Subject_Code__c": item.product.vistaSubjects.subject2Code default null,
+	"Subject_Description__c": item.product.vistaSubjects.subject2 default null,
+	"Extra_Subject_Code__c": item.product.vistaSubjects.subject3Code default null,
+	"Extra_Subject_Description__c": item.product.vistaSubjects.subject3 default null,
+	"Core_Product_Group_Code__c": item.cambridgeCore.COREPRODUCTGROUPCODE default null,
+	"Core_Product_Group__c": item.cambridgeCore.COREPRODUCTGROUP default null,
+	"Title_Code__c": item.cambridgeCore.TITLE_CODE as String default "",
+	"Global_First_Pub_Date__c": if(item.product.productEvents != null) ((item.product.productEvents filter($.eventType == "global_first_pub_date") map $.eventTimestamp joinBy "") as LocalDateTime as Date {format: "yyyy-MM-dd"} default null) else null, // use product events
+	"Publication_Date__c": if(item.product.productEvents != null) ((item.product.productEvents filter($.eventType == "global_pub_date") map $.eventTimestamp joinBy "") as LocalDateTime as Date {format: "yyyy-MM-dd"} default null) else null, //use product events
+	"Data_Fixed__c": if(item.globalPublications.ext.dataReleaseFlag == "Y") true else false,
+	"market_restrictions__c": item.marketRestrictions default null,
+	"Data_Release_Actual_Date__c": if(item.dataReleaseActualDate != null) ((item.dataReleaseActualDate.DATA_RELEASE_ACTUAL_DATE as LocalDateTime as Date {format: "yyyy-MM-dd"}) default null) else null,
+	"Author__c": (item.contributions map(contri, contriIndex)-> contri.forename ++ " " ++ contri.surname) joinBy "/" withMaxSize 254,
+	"sales_status_uk__c": salesStatusFunc("1201", item.salesStatus),
+	"sales_status_us__c": salesStatusFunc("1214", item.salesStatus),
+	"sales_status_asia__c": salesStatusFunc("1288", item.salesStatus),
+	"sales_status_iberia__c": salesStatusFunc("2101", item.salesStatus),
+	"sales_status_australia__c": salesStatusFunc("2501", item.salesStatus),
+	"sales_status_india__c": salesStatusFunc("5401", item.salesStatus),
+	"sales_status_south_africa__c": salesStatusFunc("4601", item.salesStatus),
+	"Availability_Code_UK__c": availabilityFunc("C", item.product.regionalAvailability) default null,//based on vistaRegion
+	"Availability_Code_US__c": availabilityFunc("N", item.product.regionalAvailability) default null,
+	"Availability_Code_ASIA__c": availabilityFunc("E", item.product.regionalAvailability) default null,
+	"Availability_Code_Iberia__c": availabilityFunc("I", item.product.regionalAvailability) default null,
+	"Availability_Code_Australia__c": availabilityFunc("A", item.product.regionalAvailability) default null,
+	"Availability_Code_India__c": availabilityFunc("D", item.product.regionalAvailability) default null,
+	"Availability_Code_South_Africa__c": availabilityFunc("R", item.product.regionalAvailability) default null,
+	"Answer_Code_UK__c": answerFunc("C", item.product.regionalAvailability) default null,//based on vistaRegion
+	"Answer_Code_US__c": answerFunc("N", item.product.regionalAvailability) default null,
+	"Answer_Code_ASIA__c": answerFunc("E", item.product.regionalAvailability) default null,
+	"Answer_Code_Iberia__c": answerFunc("I", item.product.regionalAvailability) default null,
+	"Answer_Code_Australia__c": answerFunc("A", item.product.regionalAvailability) default null,
+	"Answer_Code_India__c": answerFunc("D", item.product.regionalAvailability) default null,
+	"Answer_Code_South_Africa__c": answerFunc("R", item.product.regionalAvailability) default null,
+	"regional_availability_date_uk__c": regionalDateFunc("C", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_us__c": regionalDateFunc("N", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_asia__c": regionalDateFunc("E", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_iberia__c": regionalDateFunc("I", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_australia__c": regionalDateFunc("A", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_india__c": regionalDateFunc("D", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_south_africa__c": regionalDateFunc("R", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"editor__c": if(!isEmpty(item.odhMarketingController.EDITOR_NAME)) item.odhMarketingController.EDITOR_NAME else item.cartaEditor.legend default null,
+	"marketing_controller__c": item.odhMarketingController.UK_MARKETING_CONTROLLER default null,
+	"Content_Category__c": item.product.educational.contentCategory default null,
+    "Discount_Terms__c": item.product.globalDiscountTerm.legend default null,
+    "Page_Extent__c": item.product.productSizes filter ($."type" == "pageExtent") map $.value joinBy "" default null,
+    "Page_Size_Height_mm__c": item.product.productSizes filter ($."type" == "height_mm") map $.value joinBy "" default null,
+    "Page_Size_Width_mm__c": item.product.productSizes filter ($."type" == "width_mm") map $.value joinBy "" default null
+    
+
+
+    }
+    ---
+    objectHolder filterObject ((value,key) -> 
+    	 (attriPayload contains (key as String))
+    )
+})]]></ee:set-payload>
+							</ee:message>
+							<ee:variables />
+						</ee:transform>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Generate Record to send to Salesforce" doc:id="c978b671-30a8-4c71-bf18-c4e026fb397c">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+//@StreamCapable()
+//input payload application/json
+import first from dw::core::Strings
+import withMaxSize from dw::core::Strings
+output application/json //deferred=true
+fun digitalPhyiscal(str) = str match{
+	case "P" -> "Printed"
+	case "D" -> "Online"
+	else -> null
+}
+//salesStatusCode
+fun salesStatusFunc(code, ssArray) = do{
+    var check= ssArray filter ($.salesOrg == code) map ($.code ++ ": " ++ ($.description default "")) joinBy  "" withMaxSize 80
+    ---
+    if(isEmpty(check)) null else check
+}
+//availabilityCode
+fun availabilityFunc(code, availArray) = do{
+	var check= availArray filter ($.vistaRegionCode == code) map ($.vistaAvailability.code ++ ": " ++ ($.vistaAvailability.descriptionLong default "")) joinBy  "" withMaxSize 255
+    ---
+    if(isEmpty(check)) null else check
+}
+
+//answerCode
+fun answerFunc(code, ansArray) = do{
+	var check= ansArray filter ($.vistaRegionCode == code) map ($.vistaAnswerCode.code ++ ": " ++ ($.vistaAnswerCode.legend default "")) joinBy  "" withMaxSize 100
+    ---
+    if(isEmpty(check)) null else check
+}
+
+//regionalPublicationDate
+fun regionalDateFunc(code, regDArray) = do{
+	var check= regDArray filter ($.vistaRegionCode == code) map $.regionalPublicationDate joinBy  ""
+    ---
+    if(isEmpty(check)) null else check
+}
+
+fun changeBoolean(str) = str match{
+	case "N" -> false
+	case "Y" -> true
+	else -> false
+}
+---
+payload default [] map ((item, index) -> {
+	("Id" : item.Id) if(item.Id != null),
+   "ISBN_13__c": item.isbn13,
+    "ProductCode": item.isbn13,
+    "Name": item.product.productInternal.imprintCode first 1 match{
+    	case academic if(academic == "1" or academic == "2") ->  trim (item.product.bookHierarchy.masterTitle) default null
+    	case eduAndEng if(eduAndEng == "3" or eduAndEng == "4") -> 	item.product.productMain.bibliographicTitle default null
+    	else -> trim (item.product.bookHierarchy.masterTitle) default null
+    } withMaxSize 255,
+    "Product_Title__c": item.product.productInternal.imprintCode first 1 match{
+    	case academic if(academic == "1" or academic == "2") ->  trim (item.product.bookHierarchy.masterTitle) default null
+    	case eduAndEng if(eduAndEng == "3" or eduAndEng == "4") -> 	item.product.productMain.bibliographicTitle default null
+    	else -> trim (item.product.bookHierarchy.masterTitle) default null
+    } withMaxSize 80,
+    "gratis_allowed__c": changeBoolean(item.gratisFlag),
+    "Subtitle__c":  item.product.productInternal.imprintCode first 1 match{
+    	case academic if(academic == "1" or academic == "2") ->  trim (item.product.bookHierarchy.masterSubtitle) default null
+    	else -> null},
+    "Technology_Platform_Information__c": (item.techPlatform map (item) -> item.legend) joinBy "/",
+    "Family_Title__c": item.product.bookHierarchy.familyTitle default null,
+    "Product_Type__c": if(item.product.productMain.digitalPhysical != null) digitalPhyiscal(item.product.productMain.digitalPhysical) else null,
+    "Format_Code__c": item.product.productMain.cambridgeFormat.code default null,
+    "Format_Description__c": item.product.productMain.cambridgeFormat.description withMaxSize 255 default null,
+    "Profit_Centre_Code__c": item.product.productInternal.masterProfitCentreCode as Number default null,
+    "Profit_Centre__c": item.product.productInternal.masterProfitCentre default null,
+    "Division_Code__c": item.product.productInternal.masterDivisionCode as Number default null,
+    "Division_Legend__c": item.product.productInternal.masterDivision default null,
+    "SAP_Issue_ID__c": item.product.bookHierarchy.sapIdLevel3 default null,
+    "SAP_Master_ID__c": item.product.bookHierarchy.sapIdLevel2 default null,
+    "SAP_Family_ID__c": item.product.bookHierarchy.sapIdLevel1 default null,
+    "ISSN__c": item.product.productMain.'e-issn' default null,
+    "P_ISSN__c": item.product.productMain.'p-issn' default null,
+    "Previous_Edition_ISBN__c": item.product.relatedProducts filter($.relationTypeCode == "03") map $.relatedIsbn13 joinBy "" default null, //relatedisbn
+    "CBO_ISBN__c": item.product.productMain.eReviewISBN default null,
+    "Division_Subject_Code__c": item.product.productInternal.divisionalSubjectCode default null,
+	"Divisional_Subject_Description__c": item.product.productInternal.divisionalSubject default null,
+	"Edition_Name__c": item.product.editionVolumePart.familyEditionStatement default null,
+	"Edition_No__c": item.product.editionVolumePart.masterEditionNumber as Number default null,
+	"Volume_Numebr__c": item.product.editionVolumePart.masterVolumeNumber as String default null,
+	"Volume_Title__c": item.product.editionVolumePart.masterVolumeName default null withMaxSize 80,
+	"Part_Number__c": item.product.editionVolumePart.masterPartNumber as String default null,
+	"Part_Title__c": item.product.editionVolumePart.masterPartTitle default null withMaxSize 100,
+	"Series_Code__c": item.product.productInternal.seriesCode default null,
+	"Series_Description__c": item.product.productInternal.series default null,
+	"Short_Title__c": item.product.productMain.titleShort default null,
+	"Open_Access_Flag__c": if(item.product.openAccess.oaFlag == "Y") true else false,
+	"Publisher_Name__c": if(item.product.productMain.publishers != [] or item.product.productMain.publishers != null) (item.product.productMain.publishers map $.description joinBy "/" withMaxSize 255 default null) else null, //to confirm
+	"Publisher_Site_Code__c": item.product.productInternal.vistaProfitCentreCode default null,
+	"Publisher_Site__c": item.product.productInternal.vistaProfitCentre default null,
+	"Asset_Url__c": if(item.product.assets != []) item.product.assets filter ($.assetType contains  "Large Size Cover") map $.assetUrl joinBy  "" withMaxSize 255 else null,
+	"Blurb150__c": if(item.product.productBlurbs != []) item.product.productBlurbs filter ($.blurbType contains  "Blurb 150") map $.blurbText joinBy  "" withMaxSize 32768 else null,
+	"issueBlurb__c": if(item.product.productBlurbs != []) item.product.productBlurbs filter ($.blurbType contains  "Blurb Issue Level") map $.blurbText joinBy  "" withMaxSize 32768 else null,
+	"Inspection_Permitted__c": item.product.rights.inspectionCopiesAllowed match{
+		case "Y" -> true
+		case "N" -> false
+		else -> false
+	},
+	"Esamples_Permitted__c": if(item.product.productMain.cambridgeFormat.code == "RE") true else false,
+	"RecordTypeId": Mule::p('controlled.product'),
+	"IsActive": true,
+	//"Hierarchy_Level__c": item default "Issue",
+	"Higher_Subject_Code__c": item.product.vistaSubjects.subject1Code default null,
+	"Higher_Subject_Code_Description__c": item.product.vistaSubjects.subject1 default null,
+	"Subject_Code__c": item.product.vistaSubjects.subject2Code default null,
+	"Subject_Description__c": item.product.vistaSubjects.subject2 default null,
+	"Extra_Subject_Code__c": item.product.vistaSubjects.subject3Code default null,
+	"Extra_Subject_Description__c": item.product.vistaSubjects.subject3 default null,
+	"Core_Product_Group_Code__c": item.cambridgeCore.COREPRODUCTGROUPCODE default null,
+	"Core_Product_Group__c": item.cambridgeCore.COREPRODUCTGROUP default null,
+	"Title_Code__c": item.cambridgeCore.TITLE_CODE as String default "",
+	"Global_First_Pub_Date__c": if(item.product.productEvents != null) ((item.product.productEvents filter($.eventType == "global_first_pub_date") map $.eventTimestamp joinBy "") as LocalDateTime as Date {format: "yyyy-MM-dd"} default null) else null, // use product events
+	"Publication_Date__c": if(item.product.productEvents != null) ((item.product.productEvents filter($.eventType == "global_pub_date") map $.eventTimestamp joinBy "") as LocalDateTime as Date {format: "yyyy-MM-dd"} default null) else null, //use product events
+	"Data_Fixed__c": if(item.globalPublications.ext.dataReleaseFlag == "Y") true else false,
+	"market_restrictions__c": item.marketRestrictions default null,
+	"Data_Release_Actual_Date__c": if(item.dataReleaseActualDate != null) ((item.dataReleaseActualDate.DATA_RELEASE_ACTUAL_DATE as LocalDateTime as Date {format: "yyyy-MM-dd"}) default null) else null,
+	"Author__c": (item.contributions map(contri, contriIndex)-> contri.forename ++ " " ++ contri.surname) joinBy "/" withMaxSize 254,
+	"sales_status_uk__c": salesStatusFunc("1201", item.salesStatus),
+	"sales_status_us__c": salesStatusFunc("1214", item.salesStatus),
+	"sales_status_asia__c": salesStatusFunc("1288", item.salesStatus),
+	"sales_status_iberia__c": salesStatusFunc("2101", item.salesStatus),
+	"sales_status_australia__c": salesStatusFunc("2501", item.salesStatus),
+	"sales_status_india__c": salesStatusFunc("5401", item.salesStatus),
+	"sales_status_south_africa__c": salesStatusFunc("4601", item.salesStatus),
+	"Availability_Code_UK__c": availabilityFunc("C", item.product.regionalAvailability) default null,//based on vistaRegion
+	"Availability_Code_US__c": availabilityFunc("N", item.product.regionalAvailability) default null,
+	"Availability_Code_ASIA__c": availabilityFunc("E", item.product.regionalAvailability) default null,
+	"Availability_Code_Iberia__c": availabilityFunc("I", item.product.regionalAvailability) default null,
+	"Availability_Code_Australia__c": availabilityFunc("A", item.product.regionalAvailability) default null,
+	"Availability_Code_India__c": availabilityFunc("D", item.product.regionalAvailability) default null,
+	"Availability_Code_South_Africa__c": availabilityFunc("R", item.product.regionalAvailability) default null,
+	"Answer_Code_UK__c": answerFunc("C", item.product.regionalAvailability) default null,//based on vistaRegion
+	"Answer_Code_US__c": answerFunc("N", item.product.regionalAvailability) default null,
+	"Answer_Code_ASIA__c": answerFunc("E", item.product.regionalAvailability) default null,
+	"Answer_Code_Iberia__c": answerFunc("I", item.product.regionalAvailability) default null,
+	"Answer_Code_Australia__c": answerFunc("A", item.product.regionalAvailability) default null,
+	"Answer_Code_India__c": answerFunc("D", item.product.regionalAvailability) default null,
+	"Answer_Code_South_Africa__c": answerFunc("R", item.product.regionalAvailability) default null,
+	"regional_availability_date_uk__c": regionalDateFunc("C", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_us__c": regionalDateFunc("N", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_asia__c": regionalDateFunc("E", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_iberia__c": regionalDateFunc("I", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_australia__c": regionalDateFunc("A", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_india__c": regionalDateFunc("D", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"regional_availability_date_south_africa__c": regionalDateFunc("R", item.product.regionalAvailability) as LocalDateTime as Date {format: "yyyy-MM-dd"} default null,
+	"editor__c": if(!isEmpty(item.odhMarketingController.EDITOR_NAME)) item.odhMarketingController.EDITOR_NAME else item.cartaEditor.legend default null,
+	"marketing_controller__c": item.odhMarketingController.UK_MARKETING_CONTROLLER default null,
+	"Content_Category__c": item.product.educational.contentCategory default null,
+    "Discount_Terms__c": item.product.globalDiscountTerm.legend default null,
+    "Page_Extent__c": item.product.productSizes filter ($."type" == "pageExtent") map $.value joinBy "" default null,
+    "Page_Size_Height_mm__c": item.product.productSizes filter ($."type" == "height_mm") map $.value joinBy "" default null,
+    "Page_Size_Width_mm__c": item.product.productSizes filter ($."type" == "width_mm") map $.value joinBy "" default null
+
+})]]></ee:set-payload>
+				</ee:message>
+				<ee:variables />
+			</ee:transform>
+					</otherwise>
+				</choice>
+				<logger level="INFO" doc:name="Logger" doc:id="702ed452-7df1-4252-a5d5-626aba6e8c52" message="#[payload]"/>
+				<logger level="INFO" doc:name="Records Logger" doc:id="3813e671-0ff4-4579-a343-687e1d92cf70" message="*********** Record to Insert or Update *************"/>
+				<choice doc:name="Choice" doc:id="88b79f1e-a20e-47bd-88cc-9de844be3545" >
+					<when expression='#[vars.flag == "CREATE"]'>
+						<set-variable value='#[payload."ISBN_13__c" joinBy  ","]' doc:name="Set Variable" doc:id="5e9c84f0-18b4-41e7-8526-3f8f361e92e8" variableName="isbn13Checker"/>
+						<flow-ref doc:name="Create Data to Salesforce" doc:id="8af408f0-554f-4321-b13e-f89c60c77fd9" name="post-object-product2-flow" target="record" />
+						<choice doc:name="Choice" doc:id="218c1c76-7982-4540-b4de-e46d040b13f9" >
+							<when expression="#[vars.record.successful == false]">
+								<os:store doc:name="Store" doc:id="22298def-b505-4537-8636-c405312811fc" key='#["errorInsertToSalesforce"]' objectStore="recordsWithoutFilter_Object_store">
+									<os:value ><![CDATA[#[vars.isbn13Checker]]]></os:value>
+								</os:store>
+								<remove-variable doc:name="Remove Variable" doc:id="b8b464d8-723b-4045-9c61-2db2a679f603" variableName="isbn13Checker"/>
+							</when>
+							<otherwise >
+								<remove-variable doc:name="Remove Variable" doc:id="1468a475-0c8b-4f7a-9dfa-5dbde59b0243" variableName="isbn13Checker" />
+							</otherwise>
+						</choice>
+					</when>
+					<otherwise >
+						<flow-ref doc:name="Update Data to Salesforce" doc:id="f1f86f23-67b8-4d25-9698-3459b488fd67" name="put-object-product2-flow" target="record" />
+					</otherwise>
+				</choice>
+				<logger level="INFO" doc:name="Logger" doc:id="117c63ac-f87e-4a76-ad1e-1bc5618da8a1" message="************** Salesforce Response ******************"/>
+				<ee:transform doc:name="salesforceReportVar" doc:id="4271f6b0-e987-4f37-bdd0-fede13dd6447">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="salesforceReportVar"><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Arrays
+import lines from dw::core::Strings
+output application/json
+var payload01 = vars.record.items default []
+var successSize = payload01 countBy ($.successful == true) default 0
+var failedSize = payload01 countBy ($.successful == false) default 0
+var errorArray = payload01 filter($.successful == false) map(items,index) -> {
+			        "Id": items.id,
+			        "ErrorMessage": lines(items.statusCode ++ "\n" ++ items.message)
+			    		} default []
+---
+{
+	"TotalSuccessRecord": ((vars.salesforceReportVar.TotalSuccessRecord as Number) default 0) + successSize,
+	"TotalFailedRecord": ((vars.salesforceReportVar.TotalFailedRecord as Number) default 0) + failedSize,
+	"ErrorsDuringBatchProcess": (vars.salesforceReportVar.ErrorsDuringBatchProcess default []) ++ errorArray
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<!-- [STUDIO:"successBatchSF"]<ee:transform doc:name="successBatchSF" doc:id="492b9ff7-6b56-4028-ada0-4be26726f45d" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="successBatchSF" ><![CDATA[%dw 2.0
+import * from dw::core::Arrays
+output application/json
+//var successSize = vars.record.items countBy ($.successful == true) default 0
+//var failedSize = vars.record.items countBy ($.successful == false) default 0
+//var reportData = {
+//	"successSize": successSize,
+//	"failedSize": failedSize
+//}
+&#45;&#45;-
+vars.successBatchSF << vars.record&#93;&#93;></ee:set-variable>
+					</ee:variables>
+				</ee:transform> [STUDIO] -->
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="12a27a50-35f2-477c-a465-7400dddd46f5" >
+						<logger level="INFO" doc:name="Error on Batch Processing of Salesforce Data Transformation" doc:id="74437dfa-d830-4d1e-be3a-a850e6208390" message="************* Error on Batch Processing of Salesforce Data Transformation  ****************"/>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</foreach>
+		<ee:transform doc:name="Payload" doc:id="7add2bfd-ca62-4ce6-ad0e-b68f2b37cdf1">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.salesforceReportVar]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+	</sub-flow>
+	<sub-flow name="skipping-logger-sub-flow" doc:id="ef88c17e-531c-4332-9303-5917a2f081c0" >
+		<ee:transform doc:name="Transform Message" doc:id="16e12fa3-b69e-43e7-a692-a58cd2d0583c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+null]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b8f0da55-dcf1-4c76-a4fb-0c66d19394e1" message="Skipping flow........" />
+	</sub-flow>
+	<sub-flow name="cupa-carta-sapi-sub-flow" doc:id="4ae55208-5cbd-4793-a29b-be78ee000b86" >
+		<set-variable value='#["cupa-carta-sapi-sub-flow"]' doc:name="Set Variable" doc:id="0125fa4e-bfaa-4e82-bc4b-7051625503fa" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="322f3c15-022f-45c3-aaf2-88986fc9fc8e">
+			<try doc:name="Try" doc:id="af4a91c8-9359-4977-b18d-3d3ae9898636">
+				<http:request method="GET" doc:name="Carta SAPI" doc:id="40c0b381-7948-4300-b482-59df9907039d" config-ref="carta-sapi_HTTP_Request_configuration" path="#[p('paths.carta-sapi.' ++ vars.cartaPath)]">
+					<http:body ><![CDATA[#[""]]]></http:body>
+					<http:query-params><![CDATA[#[output application/java
+---
+{
+	"isbn13" : payload.isbn13
+}]]]></http:query-params>
+				</http:request>
+				<error-handler>
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ba1cd50c-8caf-42e7-95eb-d4eabc8dde0c" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Carta SAPI Error Logger" doc:id="a001ffa5-3c4f-4f9f-9218-38850f3c6eab" message="**********Error occurs during sending payload to Carta SAPI Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="3e8667bd-8b5e-45b7-8d13-f6a03df82e32" />
+	</sub-flow>
+	<sub-flow name="cupa-odh-sapi-regional-availability-sub-flow" doc:id="abd06967-4131-4b41-99a3-31b4cea96194" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="3c069299-a55e-422f-9bfd-e5af4babc918" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="e08ae789-08da-4155-847f-6a5958749990" >
+			<try doc:name="Try" doc:id="9756fbc1-b546-46ae-aa8c-aa8621f426d8" >
+				<http:request method="GET" doc:name="Regional Availability" doc:id="423d267e-7c3f-4e24-a5d7-72ab4216b70b" config-ref="odh-sapi_HTTP_Request_configuration" path="${paths.odh-sapi.regionalAvailability}" >
+					<http:body ><![CDATA[#[""]]]></http:body>
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"isbn13" : payload.isbn13
+}]]]></http:query-params>
+				</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1ddeb9be-4752-4320-a1e6-02e9adf98c7f" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS" >
+						<logger level="INFO" doc:name="ODH Cambridge Core Error Logger" doc:id="82209666-e0a8-466d-85a0-4304fb36e017" message="**********Error occurs during sending payload to ODH CambridgeCoreI Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="f3810e26-5551-4960-9838-5d2f9d2618eb" />
+	</sub-flow>
+	<flow name="request-cupa-product-papi-product-v2-flow" doc:id="107f3572-915e-456e-bfe0-2aa5d5714cd1" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="b69489b1-4259-4f1e-946a-18f53187a973" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="129ad5a5-b4d3-4e99-9628-589030319d36" >
+			<try doc:name="Try" doc:id="79810d3a-6dc3-4254-93d0-69dd39722283" >
+				<http:request method="GET" doc:name="/v2/product" doc:id="0ef16a15-e693-465d-8995-42bd6aefc01a" config-ref="product-papi_HTTP_Request_configuration" path="${paths.product-papi.productv2}">
+					<http:headers ><![CDATA[#[output application/java
+---
+{
+	"sections" : p('productV2-sections')
+}]]]></http:headers>
+					<http:query-params><![CDATA[#[output application/java
+---
+{
+	"isbn13" : payload.isbn13
+}]]]></http:query-params>
+		</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d96e93a3-f6d6-49fd-b551-1602da851881" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Product Error Logger" doc:id="46c6ae30-94a8-49ba-9e7e-362f7dcb2b8d" message="**********Error occurs during sending payload to v2 Product Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="8f6de3d7-5a19-462e-a73c-57635faa983c" />
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<flow name="request-cupa-carta-sapi-contributions-flow" doc:id="a2025969-8ba2-449c-89a1-21333ae72132" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="161b18dc-58b1-40ad-8d8c-c61f1a935122" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="9ff41e17-c499-4084-a524-d5126c616406" >
+			<try doc:name="Try" doc:id="7ea5a459-b665-4837-afdf-edbc259da7dc" >
+				<http:request method="GET" doc:name="/contributions" doc:id="c6f755b1-7b95-4615-8f52-0bff61a5eb51" config-ref="carta-sapi_HTTP_Request_configuration" path="${paths.carta-sapi.contributions}">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"isbn13" : payload.isbn13
+}]]]></http:query-params>
+		</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="2bb63308-0c37-4fdb-998c-3646e041abfe" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Contributions Error Logger" doc:id="6a6dd088-adfa-4477-9e8c-9e3b5e67e918" message="**********Error occurs during sending payload to Contributions Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="71d1a214-f68b-4963-86ac-84549784edd3" />
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<flow name="request-cupa-pubsys-sapi-market-restriction-flow" doc:id="1eb9cf6f-2bbb-4920-9f1f-ac7c0f420fc5" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="ce10d53f-79fb-47ae-b19e-1e4efb8e7f16" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="919257ae-952c-4bdf-a66a-759e77777dc4" >
+			<try doc:name="Try" doc:id="617ce3f3-2ace-4450-8715-724d8fc57ab7" >
+				<http:request method="GET" doc:name="/market-restriction" doc:id="c8e35b14-f3ca-4658-91f7-85837e964997" config-ref="pubsys-sapi_HTTP_Request_configuration" path="${paths.pubsys-sapi.market-res}">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"isbn13" : payload.isbn13
+}]]]></http:query-params>
+		</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f8e5c4af-e334-40ce-9847-9f750a8cda5b" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Market Restriction Error Logger" doc:id="4388ed7f-857c-4107-a38f-b2b28992caf1" message="**********Error occurs during sending payload to Market Restriction Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="0430d226-e53b-46f5-afe2-e8ea19fa2b02" />
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<flow name="request-cupa-pubsys-sapi-global-pub-status-flow" doc:id="48fad087-a034-4201-8a0a-e47ba818871b" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="0e3985fa-4ca3-40d2-9271-a281c397033c" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="3753d0b6-cb83-4e01-845a-61616c63433e" >
+			<try doc:name="Try" doc:id="146e2950-e264-490f-82a1-6b26cb40b400" >
+				<http:request method="GET" doc:name="/global-publication-status" doc:id="114b1c2f-217b-4b3a-8db9-84b208136337" config-ref="pubsys-sapi_HTTP_Request_configuration" path="${paths.pubsys-sapi.global-pub}" responseTimeout="120000">
+					<http:body ><![CDATA[#[""]]]></http:body>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"isbn13" : payload.isbn13
+}]]]></http:query-params>
+		</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8faaa62c-57c5-4684-88bb-e95663b6fa0f" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Global Publication Status Error Logger" doc:id="e898c343-00af-4ed1-a0d1-a4e49b5ce174" message="**********Error occurs during sending payload to Global Publication Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="7c1cd933-e231-4758-a4a7-cb4b1dcb980a" />
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<flow name="request-redshift-sales-status-flow" doc:id="bd423987-3e45-47f3-9218-c4cc5b7b48bc" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="5553ce20-d2ad-408c-87bc-4ac1f7073f0a" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="f340fb1b-1a8a-4221-8361-13e770bde611" >
+			<try doc:name="Try" doc:id="3c44071c-c8a8-42ea-be81-491b5583b056" >
+				<http:request method="GET" doc:name="/sales-status" doc:id="4a1cdccd-0c7b-4350-a0a9-06d34e225d9d" config-ref="redshift-sapi_HTTP_Request_configuration" path="${paths.redshift-sapi.sales-status}">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"isbn13" : payload.isbn13
+}]]]></http:query-params>
+		</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7488a250-df92-4fff-bbb3-2d78fb459c15" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Sales Status Error Logger" doc:id="1d81a5f9-8af4-4fc3-9e24-c1c1fbdfd6c8" message="**********Error occurs during sending payload to Sales Status Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="18b357c3-c90c-4547-8c57-e51807a597b0" />
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<flow name="get-execute-query-flow" doc:id="8c7816b2-6e01-4a99-b0d7-008845d57577" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="5301c9e1-66ac-4a97-9ee7-79371c9f36a3" variableName="flowName" />
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="29638aa4-04f3-47d3-89e6-1f2e2654b966" >
+			<try doc:name="Try" doc:id="d991761d-6aa1-4df8-868c-4c7562d58938" >
+				<http:request method="GET" doc:name="/executeQuery" doc:id="a8adb476-9f2d-49ec-8f27-5a9972b3bf42" config-ref="salesforce-sapi_HTTP_Request_configuration" path="${paths.salesforce-sapi.query}">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"query" : attributes.queryParams.query
+}]]]></http:query-params>
+		</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="77dd3578-1c33-4fcf-97bf-cc15521e2ba1" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Salesforce Error Logger" doc:id="44915de2-6582-4161-86eb-039d9a1075c9" message="**********Error occurs during sending payload to Salesforce Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="9f954093-cbfb-497d-8fd7-70fed8877bff" />
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<flow name="request-cupa-product-papi-product-changes-updated-flow" doc:id="b54c44ee-1076-4c0f-8876-07f570aaa77d" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="768d6c95-d377-4f11-bfd1-7355ce83a7a8" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="063f53bf-8667-4c67-9793-477d8bbd53d3" >
+			<try doc:name="Try" doc:id="e0fe76dc-76a2-44b0-ade0-6f2c3768ef75" >
+				<http:request method="GET" doc:name="UPDATE /v2/product-changes" doc:id="b651728c-1f30-4202-8718-9e6c63edcbdf" config-ref="product-papi_HTTP_Request_configuration" path="${paths.product-papi.product-changes}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"sections" : Mule::p('v2-product-sections')
+}]]]></http:headers>
+					<http:query-params><![CDATA[#[output application/java
+---
+{
+	"updatedFrom" : attributes.queryParams.updatedFrom,
+	"condition" : "attribute_list:salesforce_product_feed"
+	
+}]]]></http:query-params>
+		</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b4038025-2954-4537-8388-338bbeff92fe" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Product Changes Error Logger" doc:id="36e48011-20c8-4558-a8ec-974f84e13a63" message="**********Error occurs during sending payload to Product changes Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="9241cca3-87b6-4818-b97d-219ac98e07d7" />
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<flow name="request-cupa-product-papi-product-changes-created-flow" doc:id="d09ec59d-f22c-413e-936f-63f40e9bd17e">
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="f26031b3-de3b-42eb-916d-6696b0f06398" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="b2730822-a3af-49b6-855b-26a7e4144da9">
+			<try doc:name="Try" doc:id="2fe79f34-e6a2-458c-b61b-f8bc646eb4a8">
+				<http:request method="GET" doc:name="CREATE /v2/product-changes" doc:id="2d8a2163-5df4-4233-85ed-110f058b4daf" config-ref="product-papi_HTTP_Request_configuration" path="${paths.product-papi.product-changes}">
+					<http:headers ><![CDATA[#[output application/java
+---
+{
+	"sections" : Mule::p('v2-product-sections')
+}]]]></http:headers>
+					<http:query-params><![CDATA[#[output application/java
+---
+{
+	"createdFrom": attributes.queryParams.createdFrom
+}]]]></http:query-params>
+				</http:request>
+				<error-handler>
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="cdd95b6b-3bd3-4b57-84c9-bcedc090679f" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Product Changes Error Logger" doc:id="b594e16a-672c-471c-ad89-0271a29384e5" message="**********Error occurs during sending payload to Product changes Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="a78a70a6-8ed7-4d4c-af21-154e5532af00" />
+	</flow>
+	<flow name="request-cupa-core-sap-replica-sapi-product-size-changes-created-flow" doc:id="8caab87e-0709-43c0-883f-defefb456689" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="5ab16c58-601f-4ef7-9b22-b261c4f90e0d" variableName="flowName"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="01fe5fa4-6c24-45ca-a7b1-f8ff10e31036" >
+			<try doc:name="Try" doc:id="4c1b27a1-7b33-4656-85d9-17c32a65c8c6" >
+				<http:request method="GET" doc:name="UPDATE /v1/product-sizes/changes" doc:id="dbab2f31-4288-4907-8589-92fe8f2901aa" config-ref="core-sap-replica-sapi_HTTP_Request_configuration" path="${paths.core-sap-replica-sapi.product-sizes-changes}">
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"updatedFrom" : attributes.queryParams.updatedFromProductSizes
+	
+}]]]></http:query-params>
+				</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b5f03900-bb9a-4ec1-8d0c-c94c1393fbe8" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Product Sizes Changes Error Logger" doc:id="de8a9d2d-fff4-4ea4-b86b-9aeba74f09ea" message="**********Error occurs during sending payload to Product Sizes Changes Request************"/>
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="8f67af28-18af-4cc7-9086-d19ee71912d0" />
+	</flow>
+	<flow name="post-odh-query-endpoint-cambridgeCore-flow" doc:id="631a284c-e03f-4e7e-bbc3-b40df761a636" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="37b8d059-80bd-4487-8bfd-7c5f6788febf" variableName="flowName" />
+		<ee:transform doc:name="Transform Message" doc:id="8e2ed047-a093-4e9c-acd1-01e069f6d390">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "queryString": "SELECT ci.EAN_NUMBER, cbo.CBO_PRODUCT_GROUP AS coreProductGroupCode, pg.CCP_PRODUCT_GROUP_LEGEND  AS coreProductGroup, ci.TITLE_CODE FROM ORALIV.CORE_ISBN ci LEFT JOIN ORALIV.CORE_ISBN_CBO cbo ON ci.EAN_NUMBER = cbo.EAN_NUMBER LEFT JOIN APP_SYSREF.SR_CCP_PRODUCT_GROUP_ORA pg ON cbo.CBO_PRODUCT_GROUP = pg.CCP_PRODUCT_GROUP WHERE ci.EAN_NUMBER = :eanNumber",
+    "bindValues": {
+        "eanNumber": payload.isbn13 as String
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="4f333901-d163-443b-9354-d7526b2eb888" >
+			<try doc:name="Try" doc:id="b64516d2-862a-4965-b9a6-8d270a4562b0" >
+				<http:request method="POST" doc:name="POST: /query" doc:id="22409554-15b6-47e1-815a-1c832a62ea2a" config-ref="odh-sapi_HTTP_Request_configuration" path="${paths.odh-sapi.query}">
+		</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="122a6f98-329d-4be7-8bd4-0054955b878c" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="ODH Cambridge Core Error Logger" doc:id="514ca8c2-feca-427a-9721-d4052a015871" message="**********Error occurs during sending payload to ODH CambridgeCoreI Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="a73fa2d0-6c57-4c7e-8063-831d8300307c" />
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<flow name="post-object-product2-flow" doc:id="c1c5c879-dcf1-4357-9586-aa90725914c7">
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="aa01cf07-3a86-4c35-99e5-cdd04812b55b" />
+		<ee:transform doc:name="Transform Message" doc:id="3a70225d-5166-4cc3-8103-2669e37fb556">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (not (typeOf(payload) ~= "Array")) [payload] else payload]]></ee:set-payload>
+				<ee:set-attributes><![CDATA[%dw 2.0
+output application/json
+---
+
+"queryParams":{
+	"enableNulls": true,
+	"dateAttributes": "Global_First_Pub_Date__c,Publication_Date__c,regional_availability_date_uk__c,"++
+					"regional_availability_date_us__c,regional_availability_date_asia__c,regional_availability_date_iberia__c," ++ 
+					"regional_availability_date_australia__c,regional_availability_date_india__c"
+}
+]]></ee:set-attributes>
+			</ee:message>
+		</ee:transform>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="7c3bbf69-a23d-489f-8ae2-a4c5ab55b0d2">
+			<try doc:name="Try" doc:id="835a5978-f234-4036-8ff6-6b93e7332e55">
+				<http:request method="POST" doc:name="POST: /object/product2" doc:id="5ef4efb3-5e85-477f-be51-f31461f31b76" config-ref="salesforce-sapi_HTTP_Request_configuration" path="${paths.salesforce-sapi.object}">
+					<http:query-params><![CDATA[#[output application/java
+---
+{
+	"enableNulls" : true,
+	"dateAttributes" : "Global_First_Pub_Date__c,Publication_Date__c,regional_availability_date_uk__c,regional_availability_date_us__c,regional_availability_date_asia__c,regional_availability_date_iberia__c,regional_availability_date_australia__c,regional_availability_date_india__c,regional_availability_date_south_africa__c,Data_Release_Actual_Date__c"
+}]]]></http:query-params>
+		</http:request>
+				<error-handler>
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="de9f29b7-41be-4ed2-95d2-df7998eaff71" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Create Product in Salesforce Error Logger" doc:id="d8558bb9-6963-4de4-872b-73e747f2239c" message="**********Error occurs during sending payload to POST Salesforce Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="f9ddf7a0-c4c7-4842-a129-b8ba237e0d32" variableName="flowName" />
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<flow name="put-object-product2-flow" doc:id="168329b5-8773-4d86-b712-7396c5aebb9d" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="40cc41a3-1edf-4418-90d4-23a8636e4070" variableName="flowName" />
+		<ee:transform doc:name="Transform Message" doc:id="d4998d9c-5694-4081-b32c-69be215c436e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (not (typeOf(payload) ~= "Array")) [payload] else payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="76fbc413-5a08-4b63-b564-0880685b91df" >
+			<try doc:name="Try" doc:id="38236172-c12e-43d1-95e9-28212c6044cb" >
+				<http:request method="PUT" doc:name="PUT: /object/product2" doc:id="04d7f533-e3a7-40a6-b2ef-a5cf303e16f3" config-ref="salesforce-sapi_HTTP_Request_configuration" path="${paths.salesforce-sapi.object}">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"enableNulls" : true,
+	"dateAttributes" : "Global_First_Pub_Date__c,Publication_Date__c,regional_availability_date_uk__c,regional_availability_date_us__c,regional_availability_date_asia__c,regional_availability_date_iberia__c,regional_availability_date_australia__c,regional_availability_date_india__c,regional_availability_date_south_africa__c,Data_Release_Actual_Date__c"
+}]]]></http:query-params>
+		</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b573f347-daef-4a87-8b27-da9cdb4e6e6c" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+						<logger level="INFO" doc:name="Product v2 Error Logger" doc:id="0f25d8f1-d548-4d23-bb77-deaf0d512750" message="**********Error occurs during sending payload to v2 Product PAPI Request************"/>
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="bd9c40a2-f7ad-4f2a-9785-749da5c28f94" />
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<flow name="send-email-flow" doc:id="bf98dd65-f7fc-4956-b79b-816e7b75cabd" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="0e894161-c7e3-437e-8a5f-767582e891a3" variableName="flowName" />
+		<ee:transform doc:name="Set SMTP Email" doc:id="94a3e620-bb37-4611-98a3-9a2732098075">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="smtp_email"><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"from": Mule::p('report.tokenCheck.sender'),
+	"to": Mule::p('report.tokenCheck.recipient') splitBy ",",
+	"subject": upper(Mule::p('mule.env')) ++ " - " ++ Mule::p('report.emailSettings.subject'),
+	"body": "$(write(payload.reportPayload, 'application/json'))",
+	"attachments": [
+		{
+			"name": "Failed Records Report Attachment - "++ (now() as Number) as String,
+			"content": write(payload.reportAttachment, 'application/json')
+		} 
+	],
+	"contentType": "text/plain"
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="1e0ccabc-ed05-493e-9c51-606b91da65c7">
+				<try doc:name="Try" doc:id="963e3588-d3f0-4e94-9168-60d5f3f817de">
+				<http:request method="POST" doc:name="Post: Send Email" doc:id="e6951180-c0b0-4679-881f-bd7b63ab1585" config-ref="utility-sapi_HTTP_Request_configuration" path="${utilitySapi.endpoint}">
+			<http:body><![CDATA[#[vars.smtp_email]]]></http:body>
+		</http:request>
+					<error-handler>
+						<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="33e1c9bf-9939-44bb-80d0-041ee2872727" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS">
+							<logger level="INFO" doc:name="SMTP Error Logger" doc:id="df6d4480-d387-4c6d-a05f-e3050bf90424" message="**********Error occurs during sending payload to SMTP Request************" />
+						</on-error-propagate>
+					</error-handler>
+			</try>
+			</until-successful>
+		<error-handler ref="global-error-handler" />
+	</flow>
+	<flow name="post-odh-query-endpoint-datashop-fsd-flow" doc:id="5ec0c7de-f0a2-4800-94b0-6904750b3908" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="71dfd127-58f9-4016-80d3-8e2404d10f22" variableName="flowName" />
+		<ee:transform doc:name="Transform Message" doc:id="152cd6e4-6ad4-4955-a8c5-155fff33614c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "queryString": "SELECT FIRST_DATE_SENT AS data_release_actual_date FROM oraliv.dshop_cup_isbn_sent_first WHERE ean_number = :eanNumber",
+    "bindValues": {
+        "eanNumber": payload.isbn13 as String
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="17c5adaf-5990-4101-8b32-d3c44cecf418" >
+			<try doc:name="Try" doc:id="bddc336d-d2d3-43c2-825c-f2641881eeb0" >
+				<http:request method="POST" doc:name="POST: /query - Datashop" doc:id="1494e785-93a6-45df-ab6b-d73c148e133b" config-ref="odh-sapi_HTTP_Request_configuration" path="${paths.odh-sapi.query}" />
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ff50d992-c815-49b5-89e6-b6b3b93a801d" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS" >
+						<logger level="INFO" doc:name="ODH Cambridge Core Error Logger" doc:id="b6897704-c2f2-4c74-bbef-a3fa08600785" message="**********Transaction ID: #[vars.transactionId] Error occurs during sending payload to ODH Datashop Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="7fcf8d15-52de-4758-97e8-5aeb4846ad78" />
+	</flow>
+	<flow name="get-cupa-pubsys-sapi-ecommerce-categories-flow" doc:id="797eb727-8bd7-410b-9e34-a3cc4cfa1f2b" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="9aa5cc2e-b986-4e4b-b44b-9bf7eee47e98" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="bdd520af-4864-4bc0-ba6f-075fc91777fa" >
+			<try doc:name="Try" doc:id="7b88ddd2-8bd6-4fca-8eee-1847797cc468" >
+				<http:request method="GET" doc:name="/ecommerce-categories" doc:id="85dc61d4-a079-47fa-8de5-b9a89d8a33b6" config-ref="pubsys-sapi_HTTP_Request_configuration" path="${paths.pubsys-sapi.ecommerce-categories}" >
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"isbn13" : payload.isbn13
+}]]]></http:query-params>
+				</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7e53adb1-8456-493d-898e-0a27438bf9f6" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS" >
+						<logger level="INFO" doc:name="Ecommerce Categories Error Logger" doc:id="29635912-0b66-4661-bb8d-d10efb601e4a" message="**********Error occurs during sending payload to Ecommerce Categories Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="18f70d07-9830-4031-86aa-15e1bcc8fd1c" />
+	</flow>
+	<flow name="get-cupa-pubsys-sapi-technology-platform-flow" doc:id="77303b4b-b01a-40da-987e-9de58fe9e6ab" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="c3d9b1fd-3a85-4903-b28d-c816a4a29083" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="2e7a0eba-c376-4e9b-ac19-1788b2294141" >
+			<try doc:name="Try" doc:id="aecb8a57-7b12-4628-af8e-7e8f3bfbc768" >
+				<http:request method="GET" doc:name="/technology-platform" doc:id="418a0567-b258-4f0e-9ff4-77c5e567df97" config-ref="pubsys-sapi_HTTP_Request_configuration" path="${paths.pubsys-sapi.technology-platforms}" >
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"eanNumber" : payload.isbn13
+}]]]></http:query-params>
+				</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1a84c00a-566c-483a-81d7-20f5b1b82811" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS" >
+						<logger level="INFO" doc:name="Technology Platform" doc:id="f12bc306-1ce2-4a68-9e55-9697dfc1f679" message="**********Error occurs during sending payload to Technology Platform Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="c3705b84-f3ec-47e1-bb23-e27cbc31b30f" />
+	</flow>
+	<sub-flow name="post-cupa-carta-sapi-flow" doc:id="ac4bb4bf-212d-4704-833a-e3db78dc8db2">
+		<ee:transform doc:name="Set SQL Query" doc:id="d0427900-15f5-49a3-ba0e-1100a0fbfc15">
+			<ee:message>
+				<ee:set-payload resource="dwls/carta-editor.dwl" />
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="sys-post-query-cupa-carta-sapi-flow" doc:id="b473fb3b-2889-4206-b19f-91fae1dea44f" name="sys-post-query-cupa-carta-sapi-flow" />
+	</sub-flow>
+	<sub-flow name="post-cupa-odh-sapi-flow" doc:id="c4b0baac-784b-40cb-9c41-005c804a27b6" >
+		<ee:transform doc:name="Set SQL Query" doc:id="4acc30a8-d009-4d59-bf12-91fba2341dfb" >
+			<ee:message >
+				<ee:set-payload resource="dwls/odh-marketing-controller.dwl" />
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="sys-post-query-cupa-odh-sapi-flow" doc:id="fef72e4a-12fc-4257-8116-76533ceb9acd" name="sys-post-query-cupa-odh-sapi-flow"/>
+	</sub-flow>
+	<sub-flow name="core-sap-replica-sales-status-sub-flow" doc:id="85797423-995d-452a-bb1f-e63f6d0fd214" >
+		<set-variable value="#[flow.name]" doc:name="Set Variable" doc:id="4b9c7f59-a62a-4444-b7b7-344a02d64aae" variableName="flowName" />
+		<until-successful maxRetries="3" doc:name="Until Successful" doc:id="3880318c-d68f-45a4-913a-d05e9fd68f49" >
+			<try doc:name="Try" doc:id="acfc1603-9d65-4d40-9064-e98c26b9125f" >
+				<http:request method="GET" doc:name="Sales Status" doc:id="13a31606-d8b1-4530-b567-e842efa21978" config-ref="core-sap-replica-sapi_HTTP_Request_configuration" path="${paths.core-sap-replica.sales-status}" >
+					<http:body ><![CDATA[#[""]]]></http:body>
+					<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"isbn13" : payload.isbn13
+}]]]></http:query-params>
+				</http:request>
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="c9606edf-1ecc-4f66-a337-537d6254d97b" type="HTTP:CONNECTIVITY, HTTP:TIMEOUT, HTTP:TOO_MANY_REQUESTS" >
+						<logger level="INFO" doc:name="ODH Cambridge Core Error Logger" doc:id="0bf6a1c5-3d49-4937-94aa-f0b0ea46c126" message="**********Error occurs during sending payload to Core SAP Replica Request************" />
+					</on-error-propagate>
+				</error-handler>
+			</try>
+		</until-successful>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="85599515-f1a0-4187-ab62-79649de95481" />
+	</sub-flow>
+</mule> 

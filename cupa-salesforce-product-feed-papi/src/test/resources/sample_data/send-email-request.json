@@ -1,0 +1,30 @@
+{
+  "eventId": "a3af4010-0e62-11ef-a1df-00059a3c7a00",
+  "Timestamp": "2024-05-10T08:22:22.727+08:00",
+  "TotalProductToProcess": 1632,
+  "TotalProductAfterFilter": 0,
+  "Successful-Report": {
+    "SectionCreate": "Create Product Record in Salesforce",
+    "TotalToCreateRecords": 0,
+    "TotalSuccessCreateProduct": 0,
+    "TotalFailedCreateProduct": 0,
+    "ErrorsDuringBatchProcessCreate": [],
+    "SectionUpdate": "Update Product Record in Salesforce",
+    "TotalToUpdateRecords": 374,
+    "TotalSuccessUpdateProduct": 374,
+    "TotalFailedUpdateProduct": 0,
+    "ErrorsDuringBatchProcessUpdate": [
+      
+    ]
+  },
+  "Failed-Report": {
+    "CreateSection": "This is Failed to Create Records",
+    "l": "-------------------------------------------------------",
+    "Failed-To-Create-Records-During-Initial-Filter-Size": 848,
+    "Failed-To-Create-Records-After-Filtering-Size": 0,
+    "UpdateSection": "This is Failed to Update Records",
+    "l": "-------------------------------------------------------",
+    "Failed-To-Update-Records-During-Initial-Filter-Size": 35,
+    "Failed-To-Update-Records-After-Filtering-Size": 0
+  }
+}
